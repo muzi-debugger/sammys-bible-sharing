@@ -65,7 +65,7 @@
 
 @layer components {
   .eyebrow {
-    @apply font-sans text-[0.65rem] font-medium uppercase tracking-[0.22em] text-forest/60;
+    @apply font-sans text-[0.7rem] font-medium uppercase tracking-[0.2em] text-forest/60 sm:text-[0.65rem];
   }
 
   .rule-divider {

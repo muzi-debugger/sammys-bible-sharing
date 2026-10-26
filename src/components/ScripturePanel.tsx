@@ -103,7 +103,7 @@ export function ScripturePanel({
               onClick={onCopyReference}
               aria-label="Copy reference"
               title="Copy reference"
-              className="rounded-full border border-sage/40 p-1.5 text-forest/60 transition-colors duration-300 hover:border-forest/40 hover:text-forest"
+              className="rounded-full border border-sage/40 p-2.5 text-forest/60 transition-colors duration-300 hover:border-forest/40 hover:text-forest"
             >
               <Copy size={12} />
             </button>
@@ -115,7 +115,7 @@ export function ScripturePanel({
               aria-label={bookmarked ? 'Remove bookmark' : 'Save to journal'}
               title={bookmarked ? 'Remove bookmark' : 'Save to journal'}
               className={cn(
-                'rounded-full border p-1.5 transition-colors duration-300',
+                'rounded-full border p-2.5 transition-colors duration-300',
                 bookmarked
                   ? 'border-gold/60 bg-gold/15 text-[#8a6f3f]'
                   : 'border-sage/40 text-forest/60 hover:border-forest/40 hover:text-forest',

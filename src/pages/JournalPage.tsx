@@ -150,7 +150,7 @@ export function JournalPage() {
               type="button"
               onClick={() => setFilter(entry.id)}
               className={cn(
-                'rounded-full border px-3 py-1.5 font-sans text-[0.72rem] transition-colors duration-300',
+                'rounded-full border px-3.5 py-2 font-sans text-[0.75rem] transition-colors duration-300',
                 filter === entry.id
                   ? 'border-forest bg-forest text-ivory'
                   : 'border-sage/40 text-charcoal/55 hover:border-forest/40 hover:text-forest',
@@ -237,7 +237,7 @@ export function JournalPage() {
                       onClick={() => setExpandedId(isExpanded ? null : entry.id)}
                       aria-expanded={isExpanded}
                       aria-label={isExpanded ? 'Collapse entry' : 'Expand entry'}
-                      className="rounded-full border border-sage/40 p-1.5 text-charcoal/45 transition-colors hover:text-forest"
+                      className="rounded-full border border-sage/40 p-2 text-charcoal/45 transition-colors hover:text-forest"
                     >
                       <ChevronDown
                         size={13}

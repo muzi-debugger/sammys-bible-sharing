@@ -192,6 +192,7 @@ export function Toggle({
         onClick={() => onChange(!checked)}
         className={cn(
           'relative mt-0.5 h-[26px] w-[46px] shrink-0 rounded-full border transition-colors duration-300 ease-gentle',
+          'after:absolute after:-inset-2 after:content-[""]',
           checked ? 'border-forest bg-forest' : 'border-sage/60 bg-cream',
           disabled && 'cursor-not-allowed opacity-50',
         )}

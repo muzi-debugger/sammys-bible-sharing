@@ -142,7 +142,7 @@ function StudyHeader({
             type="button"
             onClick={() => onTabChange(entry.id)}
             className={cn(
-              'inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 font-sans text-[0.75rem] transition-colors duration-300',
+              'inline-flex items-center gap-2 rounded-full border px-3.5 py-2 font-sans text-[0.78rem] transition-colors duration-300',
               tab === entry.id
                 ? 'border-forest bg-forest text-ivory'
                 : 'border-sage/45 text-charcoal/60 hover:border-forest/40 hover:text-forest',

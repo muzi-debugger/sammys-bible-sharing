@@ -27,7 +27,7 @@ export function MobileHeader() {
             type="button"
             onClick={signOut}
             aria-label="Sign out"
-            className="rounded-full border border-sage/50 p-2 text-charcoal/45 transition-colors hover:text-forest"
+            className="rounded-full border border-sage/50 p-2.5 text-charcoal/45 transition-colors hover:text-forest"
           >
             <LogOut size={13} />
           </button>
@@ -51,7 +51,7 @@ export function MobileNavigation() {
               end={item.to === '/'}
               className={({ isActive }) =>
                 cn(
-                  'flex flex-col items-center gap-1 rounded-[10px] px-1 py-2 transition-colors duration-300',
+                  'flex min-h-[42px] flex-col items-center justify-center gap-1 rounded-[10px] px-1 py-2 transition-colors duration-300',
                   isActive ? 'text-forest' : 'text-charcoal/45',
                 )
               }
@@ -66,7 +66,7 @@ export function MobileNavigation() {
                   >
                     <item.icon size={16} strokeWidth={isActive ? 2 : 1.6} />
                   </span>
-                  <span className="font-sans text-[0.58rem] font-medium tracking-[0.04em]">
+                  <span className="font-sans text-[0.62rem] font-medium tracking-[0.03em]">
                     {item.shortLabel}
                   </span>
                 </>

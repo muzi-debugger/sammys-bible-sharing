@@ -184,32 +184,32 @@ export function SettingsPage() {
               ['Timezone', 'UTC / GMT'],
               ['South African equivalent', '12:00 PM (SAST, UTC+2)'],
             ].map(([label, value]) => (
-              <div key={label} className="flex items-start justify-between gap-3 border-b border-sage/20 pb-2 last:border-0">
+              <div key={label} className="flex flex-col gap-0.5 border-b border-sage/20 py-2 last:border-0 sm:flex-row sm:items-baseline sm:justify-between sm:gap-3 sm:py-0 sm:pb-2">
                 <span className="font-sans text-[0.72rem] uppercase tracking-[0.12em] text-charcoal/40">
                   {label}
                 </span>
-                <span className="text-right font-sans text-[0.8rem] text-charcoal/75">{value}</span>
+                <span className="text-left font-sans text-[0.8rem] text-charcoal/75 sm:text-right">{value}</span>
               </div>
             ))}
           </div>
           <div className="space-y-3">
-            <div className="flex items-start justify-between gap-3 border-b border-sage/20 pb-2">
+            <div className="flex flex-col gap-0.5 border-b border-sage/20 py-2 sm:flex-row sm:items-baseline sm:justify-between sm:gap-3 sm:py-0 sm:pb-2">
               <span className="font-sans text-[0.72rem] uppercase tracking-[0.12em] text-charcoal/40">
                 Last selection
               </span>
-              <span className="text-right font-sans text-[0.8rem] text-charcoal/75">
+              <span className="text-left font-sans text-[0.8rem] text-charcoal/75 sm:text-right">
                 {cycle?.generatedAt ? formatTimestamp(cycle.generatedAt) : 'Not yet run'}
               </span>
             </div>
-            <div className="flex items-start justify-between gap-3 border-b border-sage/20 pb-2">
+            <div className="flex flex-col gap-0.5 border-b border-sage/20 py-2 sm:flex-row sm:items-baseline sm:justify-between sm:gap-3 sm:py-0 sm:pb-2">
               <span className="font-sans text-[0.72rem] uppercase tracking-[0.12em] text-charcoal/40">
                 Next selection
               </span>
-              <span className="text-right font-sans text-[0.8rem] text-charcoal/75">
+              <span className="text-left font-sans text-[0.8rem] text-charcoal/75 sm:text-right">
                 {formatSelectionMoment(nextSelection)}
               </span>
             </div>
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex flex-col gap-0.5 py-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:py-0">
               <span className="font-sans text-[0.72rem] uppercase tracking-[0.12em] text-charcoal/40">
                 Last delivery
               </span>

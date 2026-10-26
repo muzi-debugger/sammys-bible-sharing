@@ -149,7 +149,7 @@ export function HomePage() {
       {todayDaily ? (
         <Card
           tone="cream"
-          className="relative overflow-hidden px-5 py-7 animate-fade-up sm:px-9 sm:py-10"
+          className="relative overflow-hidden px-4 py-6 animate-fade-up sm:px-9 sm:py-10"
         >
           <LeafCorner className="pointer-events-none absolute -bottom-10 -left-10 h-56 w-56 text-sage/35" />
           <div className="relative grid gap-8 lg:grid-cols-[1.6fr_0.9fr] lg:gap-10">
