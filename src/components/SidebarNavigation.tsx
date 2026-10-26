@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import { LogOut, Lock, ShieldCheck } from 'lucide-react';
 import { cn } from '@/lib/cn';
+import { isRemoteMode } from '@/lib/supabase';
 import { NAV_ITEMS } from '@/lib/navigation';
 import { OpenBook } from '@/components/Botanical';
 import { useApp } from '@/context/AppContext';
@@ -114,7 +115,9 @@ export function SidebarNavigation() {
       <div className="mt-6 shrink-0 pt-2">
         <AccountPanel />
         <p className="mt-4 px-1 font-sans text-[0.6rem] leading-relaxed text-charcoal/35">
-          Preview build · data is stored locally in this browser. No emails are sent.
+          {isRemoteMode
+            ? 'Stored in Supabase · preview passages · no emails yet'
+            : 'Preview build · data is stored locally in this browser. No emails are sent.'}
         </p>
       </div>
     </aside>
