@@ -27,7 +27,7 @@ export function AuthLayout({
             </span>
             <span className="leading-tight">
               <span className="block font-serif text-[1.1rem] text-forest">
-                Sammy&rsquo;s Bible Sharing
+                Sammy Bible Sharing
               </span>
               <span className="mt-0.5 block font-sans text-[0.58rem] uppercase tracking-[0.22em] text-charcoal/40">
                 Grow in faith, together
@@ -66,7 +66,7 @@ export function AuthLayout({
               <span className="flex h-9 w-9 items-center justify-center rounded-full border border-sage/50 bg-cream/60 text-forest">
                 <OpenBook className="h-4 w-4" />
               </span>
-              <span className="font-serif text-[1rem] text-forest">Sammy&rsquo;s Bible Sharing</span>
+              <span className="font-serif text-[1rem] text-forest">Sammy Bible Sharing</span>
             </div>
           </div>
 

@@ -1,5 +1,5 @@
 -- ---------------------------------------------------------------------------
--- Sammy's Bible Sharing — Supabase schema (reference implementation)
+-- Sammy Bible Sharing — Supabase schema (reference implementation)
 --
 -- Not applied by this preview build. The frontend currently persists to
 -- localStorage; swapping in Supabase means replacing `src/services/storage.ts`

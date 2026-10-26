@@ -1,6 +1,6 @@
 export const SELECTION_HOUR_UTC = 10;
 export const SELECTION_MINUTE_UTC = 0;
-export const WEEKLY_EMAIL_SUBJECT = "Your Scripture for Sunday | Sammy's Bible Sharing";
+export const WEEKLY_EMAIL_SUBJECT = "Your Scripture for Sunday | Sammy Bible Sharing";
 export const DAILY_EMAIL_SUBJECT = 'A little encouragement for today';
 
 const DAY_MS = 24 * 60 * 60 * 1000;

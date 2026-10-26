@@ -15,7 +15,7 @@ export function Brand({ compact }: { compact?: boolean }) {
       </span>
       <span className="min-w-0 leading-tight">
         <span className="block truncate font-serif text-[1.12rem] tracking-[0.01em] text-forest">
-          Sammy&rsquo;s Bible Sharing
+          Sammy Bible Sharing
         </span>
         {!compact ? (
           <span className="mt-0.5 block font-sans text-[0.6rem] uppercase tracking-[0.22em] text-charcoal/40">

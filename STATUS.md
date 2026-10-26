@@ -1,4 +1,4 @@
-# Status — Sammy's Bible Sharing
+# Status — Sammy Bible Sharing
 
 _Snapshot: 2026-10-26. Preview build at `~/code/app/sammys-bible-sharing`._
 

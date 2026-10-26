@@ -10,7 +10,7 @@
 //     BIBLE_PROVIDER_URL=https://your-licensed-nlt-proxy.example.com/bible \
 //     BIBLE_PROVIDER_KEY=... \
 //     RESEND_API_KEY=... \
-//     EMAIL_FROM="Sammy's Bible Sharing <hello@yourdomain.test>" \
+//     EMAIL_FROM="Sammy Bible Sharing <hello@yourdomain.test>" \
 //     APP_URL=https://yourdomain.test
 //
 // Guarantees:
@@ -151,7 +151,7 @@ async function delverFor(supabase, resendKey, profile, passage, cycleId, weekSta
     body: JSON.stringify({
       from: Deno.env.get('EMAIL_FROM'),
       to: profile.email,
-      subject: "Your Scripture for Sunday | Sammy's Bible Sharing",
+      subject: "Your Scripture for Sunday | Sammy Bible Sharing",
       html: weeklyEmailHtml(profile.display_name, passage, Deno.env.get('APP_URL')),
     }),
   });
@@ -162,7 +162,7 @@ async function delverFor(supabase, resendKey, profile, passage, cycleId, weekSta
   await supabase.from('email_deliveries').insert({
     kind: 'weekly',
     recipient: profile.email,
-    subject: "Your Scripture for Sunday | Sammy's Bible Sharing",
+    subject: "Your Scripture for Sunday | Sammy Bible Sharing",
     provider_message_id: payload?.id ?? null,
     status,
     detail: response.ok ? 'Accepted by Resend' : JSON.stringify(payload),

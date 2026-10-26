@@ -1,4 +1,4 @@
-# Sammy's Bible Sharing
+# Sammy Bible Sharing
 
 A private Scripture-sharing and Bible-study companion for two people. React + TypeScript +
 Tailwind, built frontend-first with a service layer that is ready for a licensed NLT provider,

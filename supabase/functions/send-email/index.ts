@@ -56,7 +56,7 @@ const shell = (title: string, intro: string, body: string, footer: string) => `
 <div style="margin:0;padding:28px 16px;background:#FAF7F0;font-family:Georgia,'Times New Roman',serif;color:#302F2A">
   <div style="max-width:560px;margin:0 auto;background:#FFFEFA;border:1px solid #DCD3C2;border-radius:16px;overflow:hidden">
     <div style="padding:26px 30px 8px">
-      <p style="margin:0;font-family:Helvetica,Arial,sans-serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#8a8578">Sammy&rsquo;s Bible Sharing</p>
+      <p style="margin:0;font-family:Helvetica,Arial,sans-serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#8a8578">Sammy Bible Sharing</p>
       <h1 style="margin:10px 0 6px;font-weight:500;font-size:26px;line-height:1.25;color:#34483A">${title}</h1>
       <p style="margin:0 0 4px;font-size:15px;line-height:1.7;color:#6b6a62;font-style:italic">${intro}</p>
     </div>
@@ -124,7 +124,7 @@ function dailyHtml(
        <p style="margin:12px 0 0;font-style:italic;font-size:15px;color:#34483A">${content.reference}</p>
      </div>
      <p style="margin:0 0 18px;font-size:15px;line-height:1.8;color:#4a4a44">What would it look like to carry this into your day?</p>
-     <p style="margin:0"><a href="${appUrl}/" style="display:inline-block;background:#34483A;color:#FFFEFA;text-decoration:none;font-family:Helvetica,Arial,sans-serif;font-size:13px;padding:12px 20px;border-radius:10px">Open Sammy&rsquo;s Bible Sharing</a></p>`,
+     <p style="margin:0"><a href="${appUrl}/" style="display:inline-block;background:#34483A;color:#FFFEFA;text-decoration:none;font-family:Helvetica,Arial,sans-serif;font-size:13px;padding:12px 20px;border-radius:10px">Open Sammy Bible Sharing</a></p>`,
     `${content.attribution}`,
   );
 }
@@ -371,7 +371,7 @@ Deno.serve(async (request) => {
       apiKey: brevoKey,
       from,
       to,
-      subject: 'Test · Sammy’s Bible Sharing',
+      subject: 'Test · Sammy Bible Sharing',
       html: shell(
         'Delivery works',
         'This is a test from your account',
@@ -382,7 +382,7 @@ Deno.serve(async (request) => {
     await admin.from('email_deliveries').insert({
       kind: 'daily',
       recipient: to,
-      subject: 'Test · Sammy’s Bible Sharing',
+      subject: 'Test · Sammy Bible Sharing',
       provider_message_id: sent.messageId ?? null,
       status: sent.ok ? 'accepted' : 'failed',
       detail: sent.detail,
@@ -486,7 +486,7 @@ Deno.serve(async (request) => {
         apiKey: brevoKey,
         from,
         to: row.email_recipient,
-        subject: 'Your Scripture for Sunday | Sammy’s Bible Sharing',
+        subject: 'Your Scripture for Sunday | Sammy Bible Sharing',
         html: weeklyHtml(names.get(row.user_id) ?? 'friend', row, content, appUrl),
       });
 
@@ -512,7 +512,7 @@ Deno.serve(async (request) => {
       await admin.from('email_deliveries').insert({
         kind: 'weekly',
         recipient: row.email_recipient,
-        subject: 'Your Scripture for Sunday | Sammy’s Bible Sharing',
+        subject: 'Your Scripture for Sunday | Sammy Bible Sharing',
         provider_message_id: sent.messageId ?? null,
         status: sent.ok ? 'accepted' : 'failed',
         detail: sent.detail,

@@ -54,7 +54,7 @@ begin
     url := 'https://iihmeoccxvjfvnwcuanq.supabase.co/functions/v1/send-email',
     headers := jsonb_build_object(
       'Content-Type', 'application/json',
-      'x-cron-secret', secret
+      'x-cron-secret', 'Azish3Bafw3thu$3'
     ),
     body := '{"mode":"weekly"}'::jsonb,
     timeout_milliseconds := 20000
@@ -82,7 +82,7 @@ begin
     url := 'https://iihmeoccxvjfvnwcuanq.supabase.co/functions/v1/send-email',
     headers := jsonb_build_object(
       'Content-Type', 'application/json',
-      'x-cron-secret', secret
+      'x-cron-secret', 'Azish3Bafw3thu$3'
     ),
     body := '{"mode":"daily"}'::jsonb,
     timeout_milliseconds := 20000
