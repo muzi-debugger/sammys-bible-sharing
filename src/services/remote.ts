@@ -348,6 +348,21 @@ export async function ensureRemoteWeek(): Promise<void> {
   fail('Could not prepare this week', error);
 }
 
+/** Asks the edge function to upgrade placeholder rows to licensed NLT text. */
+export async function prepareScriptures(): Promise<void> {
+  const { data, error } = await client().functions.invoke('send-email', {
+    body: { mode: 'prepare' },
+  });
+  if (error) {
+    console.warn('prepare-scriptures:', error.message);
+    return;
+  }
+  const result = data as { upgraded?: number; dailyUpgraded?: boolean; nltAvailable?: boolean } | null;
+  if (result && result.nltAvailable === false) {
+    console.warn('NLT provider key is not configured for the email function.');
+  }
+}
+
 /** Creates today's daily encouragement if it is missing. */
 export async function ensureRemoteDaily(): Promise<void> {
   const { error } = await client().rpc('ensure_today_daily');

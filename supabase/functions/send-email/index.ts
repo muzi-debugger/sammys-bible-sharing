@@ -390,6 +390,70 @@ Deno.serve(async (request) => {
     return json({ mode, sent });
   }
 
+  if (mode === 'prepare') {
+    // Upgrades placeholder rows to licensed NLT text. Sends nothing.
+    const cycleId = isoWeekId(new Date());
+    const { data: rows } = await admin
+      .from('weekly_assignments')
+      .select('id, reference, passage_text, attribution, content_kind')
+      .eq('cycle_id', cycleId);
+
+    let upgraded = 0;
+    for (const row of rows ?? []) {
+      if (row.content_kind === 'licensed') continue;
+      const content = await resolveContent(
+        row.reference as string,
+        row.passage_text as string,
+        row.attribution as string,
+        'placeholder',
+      );
+      if (content.contentKind !== 'licensed') continue;
+      await admin
+        .from('weekly_assignments')
+        .update({
+          passage_text: content.text,
+          attribution: content.attribution,
+          content_kind: 'licensed',
+        })
+        .eq('id', row.id);
+      upgraded += 1;
+    }
+
+    await admin.rpc('ensure_today_daily').then(
+      () => undefined,
+      () => undefined,
+    );
+    const today = new Date().toISOString().slice(0, 10);
+    const { data: daily } = await admin
+      .from('daily_scriptures')
+      .select('day, reference, passage_text, attribution, content_kind')
+      .eq('day', today)
+      .maybeSingle();
+
+    let dailyUpgraded = false;
+    if (daily && daily.content_kind === 'placeholder') {
+      const content = await resolveContent(
+        daily.reference as string,
+        daily.passage_text as string,
+        daily.attribution as string,
+        'placeholder',
+      );
+      if (content.contentKind === 'licensed') {
+        await admin
+          .from('daily_scriptures')
+          .update({
+            passage_text: content.text,
+            attribution: content.attribution,
+            content_kind: 'licensed',
+          })
+          .eq('day', today);
+        dailyUpgraded = true;
+      }
+    }
+
+    return json({ mode, cycleId, upgraded, dailyUpgraded, nltAvailable: Boolean(API_BIBLE_KEY) });
+  }
+
   if (mode === 'weekly') {
     const cycleId = isoWeekId(new Date());
     const { data: assignments, error } = await admin

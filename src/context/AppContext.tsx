@@ -13,7 +13,7 @@ import { useAuth } from '@/context/AuthContext';
 import { isRemoteMode } from '@/lib/supabase';
 import { dailyScriptureService } from '@/services/dailyScripture';
 import { scriptureAssignmentService } from '@/services/scriptureAssignment';
-import { ensureRemoteDaily, ensureRemoteWeek, loadSnapshot } from '@/services/remote';
+import { ensureRemoteDaily, ensureRemoteWeek, loadSnapshot, prepareScriptures } from '@/services/remote';
 import { getDatabase, hydrateDatabase, subscribeToDatabase } from '@/services/storage';
 import { LoadingState } from '@/components/ui/states';
 import type {
@@ -66,6 +66,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }
         await ensureRemoteWeek();
         await ensureRemoteDaily();
+        await prepareScriptures();
         hydrateDatabase(await loadSnapshot(session.userId));
         setBootState('ready');
         return;
