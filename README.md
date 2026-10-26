@@ -97,6 +97,29 @@ VITE_BIBLE_PROVIDER_BASE_URL=https://your-proxy.example.com/bible
 `Psalm 23:1-6` → `PSA.23.1-6`, strips markup, and rejects any response that is not confirmed NLT.
 If NLT is not approved for your key, the UI shows the error and keeps the NLT preference.
 
+## Email (Brevo)
+
+**Brevo SMTP keys do not work here** — edge functions cannot open SMTP sockets. Use a Brevo
+**API v3 key** (Brevo → SMTP & API → API Keys), and verify a sender under Senders & Domains.
+
+```bash
+supabase login
+supabase link --project-ref <PROJECT_REF>
+supabase functions deploy send-email --no-verify-jwt
+supabase secrets set BREVO_API_KEY=xkeysib-... EMAIL_FROM="Sammy <you@example.com>" \
+  APP_URL="https://sammys-bible-sharing.mmzolodev.workers.dev" CRON_SECRET="<random>"
+```
+
+Then run `supabase/003-email-and-cron.sql` with `<PROJECT_REF>` and `<EDGE_CRON_SECRET>` replaced.
+That creates `ensure_today_daily()` and the two `pg_cron` jobs (Monday 10:00 UTC, daily 06:00 UTC).
+
+`POST /functions/v1/send-email` accepts `{"mode":"weekly"|"daily"|"test"}`. Scheduled calls
+authenticate with `x-cron-secret`; a signed-in user can only trigger `test`, which mails their own
+address. Delivery rows are written to `email_deliveries`, and `weekly_assignments.email_status`
+only moves to `accepted` when Brevo returns 2xx. Accepted rows are never re-sent.
+
+Settings has a **“Send a test email to myself”** button in Supabase mode.
+
 ## Accounts and privacy
 
 Two modes, selected by `VITE_DATA_MODE`:

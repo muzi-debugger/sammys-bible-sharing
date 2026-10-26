@@ -14,6 +14,7 @@ import {
 import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
 import { isRemoteMode } from '@/lib/supabase';
+import { sendTestEmail } from '@/services/remote';
 import type { PartnerProfile } from '@/types';
 import { Badge, Button, Card, Field, SectionHeading, Toggle, inputClass } from '@/components/ui/primitives';
 import { DeliveryStatus } from '@/components/DeliveryStatus';
@@ -121,6 +122,7 @@ export function SettingsPage() {
   const { notify } = useToast();
   const navigate = useNavigate();
   const [confirmReset, setConfirmReset] = useState(false);
+  const [sendingTest, setSendingTest] = useState(false);
   const providerConnected = providerInfo.mode === 'connected';
 
   const lastAssignment = db.assignments
@@ -236,10 +238,35 @@ export function SettingsPage() {
             />
           </div>
 
-          <div className="sm:col-span-2 -mt-2">
-            <InlineError
-              message={`Delivery is not connected in this preview build. Email attempts are logged below, but no message is sent and no “sent” status is claimed.`}
-            />
+          <div className="sm:col-span-2 -mt-2 space-y-3">
+            {isRemoteMode ? (
+              <>
+                <p className="rounded-journal border border-sage/35 bg-cream/30 px-4 py-3 font-sans text-[0.72rem] leading-relaxed text-charcoal/55">
+                  Emails are sent by the scheduled edge function (Monday 10:00 UTC and 06:00 UTC
+                  daily). Delivery is only recorded once Brevo accepts the message.
+                </p>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  disabled={sendingTest}
+                  onClick={async () => {
+                    setSendingTest(true);
+                    const result = await sendTestEmail();
+                    setSendingTest(false);
+                    notify(
+                      result.ok ? 'Test email accepted by Brevo.' : `Test failed: ${result.detail}`,
+                      result.ok ? 'success' : 'error',
+                    );
+                  }}
+                >
+                  {sendingTest ? 'Sending…' : 'Send a test email to myself'}
+                </Button>
+              </>
+            ) : (
+              <InlineError
+                message={`Delivery is not connected in this preview build. Email attempts are logged below, but no message is sent and no “sent” status is claimed.`}
+              />
+            )}
           </div>
 
           <div className="sm:col-span-2 -mt-2">

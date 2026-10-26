@@ -348,6 +348,23 @@ export async function ensureRemoteWeek(): Promise<void> {
   fail('Could not prepare this week', error);
 }
 
+/** Creates today's daily encouragement if it is missing. */
+export async function ensureRemoteDaily(): Promise<void> {
+  const { error } = await client().rpc('ensure_today_daily');
+  // The function may not be installed yet; not fatal for the app.
+  if (error) console.warn('ensure_today_daily:', error.message);
+}
+
+/** Sends a test email to the signed-in user through the edge function. */
+export async function sendTestEmail(): Promise<{ ok: boolean; detail: string }> {
+  const { data, error } = await client().functions.invoke('send-email', {
+    body: { mode: 'test' },
+  });
+  if (error) return { ok: false, detail: error.message };
+  const sent = (data as { sent?: { ok?: boolean; detail?: string } } | null)?.sent;
+  return { ok: Boolean(sent?.ok), detail: sent?.detail ?? 'No detail returned' };
+}
+
 export async function upsertStudy(study: PersonalStudy): Promise<void> {
   const { error } = await client()
     .from('personal_studies')

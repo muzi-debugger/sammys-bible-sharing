@@ -142,7 +142,7 @@ started because your account is locked due to a billing issue.”*
 | 2 | ~~Auth is client-side~~ — Supabase Auth when `VITE_DATA_MODE=supabase` (password reset still missing) | code |
 | 3 | ~~Notebook privacy is service-layer only~~ — RLS `auth.uid() = user_id` | env vars + redeploy |
 | 4 | Monday 10:00 UTC selection and daily verse are simulated (`ensure_current_week()` RPC on login) | `pg_cron` + edge function |
-| 5 | No emails are sent | Email provider (Brevo) + edge function |
+| 5 | Emails implemented server-side (`send-email` edge function + `pg_cron`) | Deploy function + Brevo API key |
 | 6 | Every passage is a placeholder | API.Bible key **with NLT approved** |
 | 7 | Seed data still backs local mode only; Supabase mode starts empty | done by design |
 | 8 | No automated tests (manual browser checks only) | code work |
