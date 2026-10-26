@@ -137,6 +137,14 @@ gh workflow run deploy.yml
 Then **Settings → Pages** shows `https://<user>.github.io/sammys-bible-sharing/`. Optional repo
 variable `VITE_BIBLE_PROVIDER=api-bible` and secret `VITE_API_BIBLE_KEY` feed the build.
 
+> **If GitHub Actions is unavailable** (for example “The job was not started because your account
+> is locked due to a billing issue”), Pages cannot be built by the workflow. Two options:
+> resolve the billing issue in GitHub → Settings → Billing, or deploy the same repo to
+> **Vercel Hobby** / **Cloudflare Pages** (both free) and set `VITE_PARTNER_ONE_EMAIL`,
+> `VITE_PARTNER_TWO_EMAIL`, `VITE_PARTNER_ONE_NAME`, `VITE_PARTNER_TWO_NAME` in that host's
+> environment settings. Do **not** commit a built `dist/` with real addresses inside it — the
+> VITE_ values are inlined into the bundle.
+
 ## Next phases
 
 1. **Provider** — licence the NLT, deploy the proxy, flip `licensedProviderVerified`.
