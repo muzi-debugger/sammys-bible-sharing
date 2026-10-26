@@ -4,7 +4,7 @@ import { ArrowRight, Lock, Mail } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { AuthLayout } from '@/components/AuthLayout';
 import { Button, Field, inputClass } from '@/components/ui/primitives';
-import { AuthError, INVITED_ACCOUNTS, isRegistered } from '@/services/auth';
+import { AuthError } from '@/services/auth';
 
 export function LoginPage() {
   const { session, signIn } = useAuth();
@@ -99,28 +99,11 @@ export function LoginPage() {
           {busy ? 'Signing in…' : 'Sign in'}
         </Button>
 
-        <div className="rounded-journal border border-sage/35 bg-cream/40 p-3.5">
-          <p className="font-sans text-[0.6rem] uppercase tracking-[0.18em] text-charcoal/40">
-            This circle
-          </p>
-          <ul className="mt-2 space-y-1">
-            {INVITED_ACCOUNTS.map((account) => (
-              <li
-                key={account.id}
-                className="flex items-center justify-between gap-3 font-sans text-[0.74rem] text-charcoal/60"
-              >
-                <span>{account.email}</span>
-                <span className="text-[0.62rem] uppercase tracking-[0.12em] text-charcoal/35">
-                  {isRegistered(account.email) ? 'registered' : 'invite pending'}
-                </span>
-              </li>
-            ))}
-          </ul>
-          <p className="mt-2 font-sans text-[0.64rem] leading-relaxed text-charcoal/40">
-            Only these two addresses can sign in. Each account has its own private notebook and
-            there is no way to switch into the other person&rsquo;s account.
-          </p>
-        </div>
+        <p className="flex items-start gap-2 font-sans text-[0.66rem] leading-relaxed text-charcoal/40">
+          <Lock size={11} className="mt-[3px] shrink-0 text-forest/40" />
+          Access is limited to two invited addresses. Each has its own private notebook, and there is
+          no way to switch into the other person&rsquo;s account.
+        </p>
       </form>
     </AuthLayout>
   );

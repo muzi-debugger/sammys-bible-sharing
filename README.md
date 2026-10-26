@@ -100,8 +100,9 @@ If NLT is not approved for your key, the UI shows the error and keeps the NLT pr
 ## Accounts and privacy
 
 - `/#/login` and `/#/register` are the only public routes; every other route is guarded.
-- Two invited identities are hard-coded for the POC: `meneer.mzolo@gmail.com` and
-  `ntswakithipe@icloud.com`. Only these two may register; the first registration sets the password.
+- Two invited identities are hard-coded for the POC in `src/services/auth.ts`. Only those two
+  addresses may register; the first registration sets the password. The sign-in page never lists
+  them, so the addresses are not exposed publicly.
 - There is no account switcher. Sign out and back in with the other partner's credentials to see
   their notebook — that is the only way, and the UI never offers a shortcut.
 - The welcome message, sidebar and every email use the signed-in account's name and address; edits

@@ -30,8 +30,9 @@ _Snapshot: 2026-10-26. Preview build at `~/code/app/sammys-bible-sharing`._
 ### Auth + deployment verified
 - Visiting any app route while signed out redirects to `/#/login`; the login and register pages are
 the only public routes.
-- Registering `meneer.mzolo@gmail.com` lands on the home page with “Good morning, Sam.”; signing
-out returns to `/#/login`; a wrong password shows “That password does not match this account.”
+- Registering the first invited address lands on the home page with “Good morning, Sam.”;
+signing out returns to `/#/login`; a wrong password shows “That password does not match this
+account.” The login page does not display either invited address.
 - Only the two hard-coded invited addresses can register; a second registration of the same
 address is refused.
 - Signing in as Sammy shows Sammy's passage and an empty notebook — none of Sam's writing is
