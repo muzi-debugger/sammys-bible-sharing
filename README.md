@@ -121,7 +121,36 @@ repository **variables** `VITE_PARTNER_ONE_NAME`, `VITE_PARTNER_TWO_NAME` before
 Without the emails the build still runs, but it shows a “no partner addresses configured” notice
 and nobody can sign in.
 
-## Deploying to GitHub Pages (free)
+## Deploying — Cloudflare Pages (primary, free)
+
+GitHub Actions is currently blocked for this account (“locked due to a billing issue”), so Pages is
+built by Cloudflare instead. Connect the repo once and set:
+
+| Setting | Value |
+| --- | --- |
+| Framework preset | Vite |
+| Build command | `npm ci && npm run build` |
+| Build output directory | `dist` |
+| Root directory | *(leave empty)* |
+| Node version | `20` (also pinned in `.nvmrc`) |
+
+Environment variables (Production **and** Preview):
+
+| Name | Value |
+| --- | --- |
+| `VITE_PARTNER_ONE_NAME` | from `.env.local` |
+| `VITE_PARTNER_ONE_EMAIL` | from `.env.local` |
+| `VITE_PARTNER_TWO_NAME` | from `.env.local` |
+| `VITE_PARTNER_TWO_EMAIL` | from `.env.local` |
+| `VITE_BIBLE_PROVIDER` | `api-bible` once NLT is approved |
+| `VITE_API_BIBLE_KEY` | API.Bible key (mark as secret) |
+
+Because Vite inlines `VITE_*` into the client bundle, the two addresses exist inside the deployed
+JavaScript even though nothing displays them. Keep the site private with **Cloudflare Access**
+(Zero Trust → Access → Applications → self-hosted, one-time-PIN policy limited to those two
+addresses) — free for up to 50 users.
+
+### Alternative: GitHub Pages (needs Actions)
 
 `.github/workflows/deploy.yml` builds with `npm ci && npm run build` and publishes `dist/`.
 `vite.config.ts` uses `base: './'` so the same artifact works at `/<repo>/`, `public/.nojekyll` is
@@ -138,12 +167,9 @@ Then **Settings → Pages** shows `https://<user>.github.io/sammys-bible-sharing
 variable `VITE_BIBLE_PROVIDER=api-bible` and secret `VITE_API_BIBLE_KEY` feed the build.
 
 > **If GitHub Actions is unavailable** (for example “The job was not started because your account
-> is locked due to a billing issue”), Pages cannot be built by the workflow. Two options:
-> resolve the billing issue in GitHub → Settings → Billing, or deploy the same repo to
-> **Vercel Hobby** / **Cloudflare Pages** (both free) and set `VITE_PARTNER_ONE_EMAIL`,
-> `VITE_PARTNER_TWO_EMAIL`, `VITE_PARTNER_ONE_NAME`, `VITE_PARTNER_TWO_NAME` in that host's
-> environment settings. Do **not** commit a built `dist/` with real addresses inside it — the
-> VITE_ values are inlined into the bundle.
+> is locked due to a billing issue”), Pages cannot be built by the workflow. Resolve the billing
+> issue in GitHub → Settings → Billing, or use Cloudflare Pages above. Do **not** commit a built
+> `dist/` with real addresses inside it — the VITE_ values are inlined into the bundle.
 
 ## Next phases
 

@@ -116,28 +116,26 @@ passages (different reference, book and theme), ownership checks on every notebo
 
 ---
 
-## 3. Free hosting — GitHub Pages (chosen)
+## 3. Free hosting — Cloudflare Pages (chosen)
 
-The build output is a static bundle (`dist/`), so it can be hosted free. This project is now wired
-for **GitHub Pages** via `.github/workflows/deploy.yml`:
+GitHub Pages is wired up (`.github/workflows/deploy.yml`) but **GitHub Actions cannot start** on
+this account: *“The job was not started because your account is locked due to a billing issue.”*
+So the deployment target is **Cloudflare Pages** (free):
 
-```bash
-cd ~/code/app/sammys-bible-sharing
-git init -b main && git add -A && git commit -m "Sammy's Bible Sharing"
-gh repo create sammys-bible-sharing --public --source=. --remote=origin --push
-gh api -X POST repos/:owner/sammys-bible-sharing/pages -f build_type=workflow
-gh workflow run deploy.yml
-```
+| Setting | Value |
+| --- | --- |
+| Framework preset | Vite |
+| Build command | `npm ci && npm run build` |
+| Output directory | `dist` |
+| Node | `20` (`.nvmrc`) |
+| Env vars | `VITE_PARTNER_ONE_NAME`, `VITE_PARTNER_ONE_EMAIL`, `VITE_PARTNER_TWO_NAME`, `VITE_PARTNER_TWO_EMAIL` (values in `.env.local`, never committed) |
 
-The workflow runs `npm ci && npm run build` and publishes `dist/`. `vite.config.ts` uses
-`base: './'` (works at `/<repo>/`), `public/.nojekyll` is included, and `HashRouter` means no SPA
-rewrite rules are required.
+`base: './'` and `HashRouter` mean the same build works at a root domain, a `*.pages.dev`
+subdomain or a `/<repo>/` path without rewrites.
 
-Optional repo **variable** `VITE_BIBLE_PROVIDER=api-bible` and **secret** `VITE_API_BIBLE_KEY`
-feed the build so the deployed site uses the real provider.
-
-Alternatives that also work freely: Vercel Hobby (personal/non-commercial), Cloudflare Pages,
-Netlify Starter.
+Because Vite inlines `VITE_*` into the bundle, the two addresses exist inside the deployed JS even
+though nothing renders them. Recommended: put the site behind **Cloudflare Access** (Zero Trust,
+free for 50 users, one-time PIN limited to those two addresses).
 
 ### What free hosting does **not** solve
 - **Data stays in one browser.** A hosted static site still stores everything in that visitor's
