@@ -1,4 +1,6 @@
 import { PARTNER_IDENTITIES } from '@/lib/identities';
+import { isRemoteMode, supabase } from '@/lib/supabase';
+import { updateOwnProfile } from '@/services/remote';
 import type { PartnerId } from '@/types';
 
 /**
@@ -48,7 +50,8 @@ export class AuthError extends Error {
     | 'not-invited'
     | 'already-registered'
     | 'not-registered'
-    | 'weak-password';
+    | 'weak-password'
+    | 'confirm-email';
 
   constructor(code: AuthError['code'], message: string) {
     super(message);
@@ -130,8 +133,29 @@ export function isInvited(email: string): boolean {
 }
 
 export async function signIn(email: string, password: string): Promise<Session> {
-  await wait(220);
   const normalised = email.trim().toLowerCase();
+
+  if (isRemoteMode && supabase) {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: normalised,
+      password,
+    });
+    if (error || !data.session || !data.user) {
+      throw new AuthError(
+        'invalid-credentials',
+        error?.message === 'Email not confirmed'
+          ? 'Please confirm your email address first — check your inbox.'
+          : 'That email and password do not match an account.',
+      );
+    }
+    return {
+      userId: data.user.id,
+      email: data.user.email ?? normalised,
+      signedInAt: new Date().toISOString(),
+    };
+  }
+
+  await wait(220);
   const accounts = getAccounts();
   const account = accounts.find((entry) => entry.email.toLowerCase() === normalised);
 
@@ -170,6 +194,45 @@ export async function register({ name, email, password }: RegisterInput): Promis
   }
 
   const normalised = email.trim().toLowerCase();
+
+  if (isRemoteMode && supabase) {
+    const invited = PARTNER_IDENTITIES.some(
+      (identity) => identity.email.toLowerCase() === normalised,
+    );
+    if (!invited) {
+      throw new AuthError(
+        'not-invited',
+        'This application is for two people. Only the two invited email addresses can create an account.',
+      );
+    }
+    const { data, error } = await supabase.auth.signUp({
+      email: normalised,
+      password,
+      options: { data: { display_name: name.trim() } },
+    });
+    if (error) {
+      throw new AuthError(
+        error.message.toLowerCase().includes('already')
+          ? 'already-registered'
+          : 'not-invited',
+        error.message.toLowerCase().includes('already')
+          ? 'That account is already set up. Sign in with your password instead.'
+          : error.message,
+      );
+    }
+    if (!data.session || !data.user) {
+      throw new AuthError(
+        'confirm-email',
+        'Almost there — open the confirmation email we just sent, then sign in.',
+      );
+    }
+    return {
+      userId: data.user.id,
+      email: data.user.email ?? normalised,
+      signedInAt: new Date().toISOString(),
+    };
+  }
+
   const accounts = getAccounts();
   const account = accounts.find((entry) => entry.email.toLowerCase() === normalised);
 
@@ -207,6 +270,10 @@ export async function register({ name, email, password }: RegisterInput): Promis
 }
 
 export function signOut() {
+  if (isRemoteMode && supabase) {
+    void supabase.auth.signOut();
+    return;
+  }
   try {
     window.localStorage.removeItem(SESSION_KEY);
   } catch {
@@ -216,6 +283,13 @@ export function signOut() {
 
 /** Keeps the sign-in identity in step with the partner details in Settings. */
 export function updateAccount(id: PartnerId, patch: { name?: string; email?: string }) {
+  if (isRemoteMode) {
+    void updateOwnProfile(id, {
+      display_name: patch.name,
+      // Email changes go through Supabase Auth confirmation, not a profile update.
+    }).catch((error: Error) => console.error(error.message));
+    return;
+  }
   const accounts = getAccounts();
   const account = accounts.find((entry) => entry.id === id);
   if (!account) return;

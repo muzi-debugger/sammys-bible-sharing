@@ -1,3 +1,5 @@
+import { isRemoteMode } from '@/lib/supabase';
+import { upsertSharedTakeaway, upsertStudy } from '@/services/remote';
 import { getDatabase, mutateDatabase } from '@/services/storage';
 import type {
   PersonalStudy,
@@ -31,7 +33,7 @@ export interface PersonalStudyService {
   getForUser(userId: PartnerId, studyId: string): PersonalStudy | undefined;
   getForAssignment(userId: PartnerId, assignmentId: string): PersonalStudy | undefined;
   ensureForAssignment(userId: PartnerId, assignment: WeeklyAssignment): PersonalStudy;
-  save(userId: PartnerId, studyId: string, patch: Partial<StudyFields>): PersonalStudy;
+  save(userId: PartnerId, studyId: string, patch: Partial<StudyFields>): Promise<PersonalStudy>;
   search(userId: PartnerId, query: string): PersonalStudy[];
   getSharedTakeaway(cycleId: string): SharedTakeaway | undefined;
   saveSharedTakeaway(userId: PartnerId, cycleId: string, patch: Partial<SharedFields>): SharedTakeaway;
@@ -41,7 +43,7 @@ export interface PersonalStudyService {
 function emptyStudy(userId: PartnerId, assignment: WeeklyAssignment): PersonalStudy {
   const now = new Date().toISOString();
   return {
-    id: `ps_${assignment.id}`,
+    id: isRemoteMode ? crypto.randomUUID() : `ps_${assignment.id}`,
     userId,
     weeklyAssignmentId: assignment.id,
     cycleId: assignment.cycleId,
@@ -106,6 +108,9 @@ export const personalStudyService: PersonalStudyService = {
       );
       if (!already) draft.personalStudies.push(created);
     });
+    if (isRemoteMode) {
+      void upsertStudy(created).catch((error: Error) => console.error(error.message));
+    }
     return (
       getDatabase().personalStudies.find((entry) => entry.id === created.id) ?? created
     );
@@ -117,7 +122,18 @@ export const personalStudyService: PersonalStudyService = {
       userId,
     );
 
-    let updated: PersonalStudy = study;
+    let updated: PersonalStudy = { ...study, ...patch, updatedAt: new Date().toISOString(), isSample: false };
+
+    if (isRemoteMode) {
+      return upsertStudy(updated).then(() => {
+        mutateDatabase((draft) => {
+          const target = draft.personalStudies.find((entry) => entry.id === studyId);
+          if (target) Object.assign(target, updated);
+        });
+        return updated;
+      });
+    }
+
     mutateDatabase((draft) => {
       const target = draft.personalStudies.find((entry) => entry.id === studyId);
       if (!target) throw new OwnershipError('That study notebook could not be found.');
@@ -127,7 +143,7 @@ export const personalStudyService: PersonalStudyService = {
       target.isSample = false;
       updated = { ...target };
     });
-    return updated;
+    return Promise.resolve(updated);
   },
 
   search(userId, query) {
@@ -179,6 +195,9 @@ export const personalStudyService: PersonalStudyService = {
       result = created;
     });
     if (!result) throw new Error('Unable to save the shared takeaway.');
+    if (isRemoteMode) {
+      void upsertSharedTakeaway(result).catch((error: Error) => console.error(error.message));
+    }
     return result;
   },
 

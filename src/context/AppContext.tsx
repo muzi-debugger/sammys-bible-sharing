@@ -10,9 +10,12 @@ import {
 } from 'react';
 import { cycleIdFor, startOfWeekUtc, toIsoDate } from '@/lib/dates';
 import { useAuth } from '@/context/AuthContext';
+import { isRemoteMode } from '@/lib/supabase';
 import { dailyScriptureService } from '@/services/dailyScripture';
 import { scriptureAssignmentService } from '@/services/scriptureAssignment';
-import { getDatabase, subscribeToDatabase } from '@/services/storage';
+import { ensureRemoteWeek, loadSnapshot } from '@/services/remote';
+import { getDatabase, hydrateDatabase, subscribeToDatabase } from '@/services/storage';
+import { LoadingState } from '@/components/ui/states';
 import type {
   AppSettings,
   DailyScriptureRecord,
@@ -56,6 +59,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setBootState('loading');
     setBootError(null);
     try {
+      if (isRemoteMode) {
+        if (!session?.userId) {
+          setBootState('ready');
+          return;
+        }
+        await ensureRemoteWeek();
+        hydrateDatabase(await loadSnapshot(session.userId));
+        setBootState('ready');
+        return;
+      }
       const now = new Date();
       await scriptureAssignmentService.ensureCurrentCycle(now);
       await dailyScriptureService.ensureToday(now);
@@ -68,7 +81,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           : 'The Scripture provider could not be reached. Your NLT preference has been kept.',
       );
     }
-  }, []);
+  }, [session?.userId]);
 
   useEffect(() => {
     void bootstrap();
@@ -111,7 +124,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
     };
   }, [db, bootState, bootError, bootstrap, session?.userId]);
 
-  if (!value) return null;
+  if (!value) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-ivory">
+        <LoadingState label={isRemoteMode ? 'Opening your journal' : 'Opening your devotional'} />
+      </div>
+    );
+  }
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }

@@ -13,6 +13,8 @@ import {
 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
+import { isRemoteMode } from '@/lib/supabase';
+import type { PartnerProfile } from '@/types';
 import { Badge, Button, Card, Field, SectionHeading, Toggle, inputClass } from '@/components/ui/primitives';
 import { DeliveryStatus } from '@/components/DeliveryStatus';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
@@ -34,21 +36,21 @@ const TIMEZONES = [
   { value: 'Europe/London', label: 'London' },
 ];
 
-function PartnerCard({ id }: { id: 'sam' | 'sammy' }) {
-  const { settings } = useApp();
+function PartnerCard({ partner, readOnly }: { partner: PartnerProfile; readOnly: boolean }) {
   const { updateAccount } = useAuth();
   const { notify } = useToast();
-  const partner = settings.partners.find((entry) => entry.id === id);
-  const [name, setName] = useState(partner?.name ?? '');
-  const [email, setEmail] = useState(partner?.email ?? '');
+  const id = partner.id;
+  const [name, setName] = useState(partner.name);
+  const [email, setEmail] = useState(partner.email);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    setName(partner?.name ?? '');
-    setEmail(partner?.email ?? '');
-  }, [partner?.name, partner?.email]);
+    setName(partner.name);
+    setEmail(partner.email);
+  }, [partner.name, partner.email]);
 
   const save = () => {
+    if (readOnly) return;
     if (!name.trim()) {
       setError('A name is required.');
       return;
@@ -81,6 +83,7 @@ function PartnerCard({ id }: { id: 'sam' | 'sammy' }) {
             id={`partner-name-${id}`}
             className={inputClass}
             value={name}
+            disabled={readOnly}
             onChange={(event) => setName(event.target.value)}
           />
         </Field>
@@ -90,6 +93,7 @@ function PartnerCard({ id }: { id: 'sam' | 'sammy' }) {
             type="email"
             className={inputClass}
             value={email}
+            disabled={readOnly}
             onChange={(event) => setEmail(event.target.value)}
           />
         </Field>
@@ -97,9 +101,16 @@ function PartnerCard({ id }: { id: 'sam' | 'sammy' }) {
 
       {error ? <p className="mt-2 font-sans text-[0.72rem] text-terracotta">{error}</p> : null}
 
-      <Button variant="secondary" size="sm" className="mt-4" onClick={save}>
-        Save details
-      </Button>
+      {readOnly ? (
+        <p className="mt-4 flex items-start gap-2 font-sans text-[0.68rem] leading-relaxed text-charcoal/40">
+          <Lock size={11} className="mt-[3px] shrink-0 text-forest/40" />
+          Only they can change their own name and address.
+        </p>
+      ) : (
+        <Button variant="secondary" size="sm" className="mt-4" onClick={save}>
+          Save details
+        </Button>
+      )}
     </Card>
   );
 }
@@ -142,8 +153,13 @@ export function SettingsPage() {
           description="Each partner receives their own passage and their own private notebook."
         />
         <div className="grid gap-4 sm:grid-cols-2">
-          <PartnerCard id="sam" />
-          <PartnerCard id="sammy" />
+          {settings.partners.map((profile) => (
+            <PartnerCard
+              key={profile.id}
+              partner={profile}
+              readOnly={isRemoteMode && profile.id !== user.id}
+            />
+          ))}
         </div>
         <p className="font-sans text-[0.68rem] leading-relaxed text-charcoal/40">
           Editing a name or address updates future deliveries only. Existing assignments keep their

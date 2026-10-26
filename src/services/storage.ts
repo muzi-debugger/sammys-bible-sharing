@@ -1,4 +1,5 @@
-import { buildSeedDatabase } from '@/data/seed';
+import { DEFAULT_SETTINGS, buildSeedDatabase } from '@/data/seed';
+import { isRemoteMode } from '@/lib/supabase';
 import type { PartnerId, PreviewDatabase } from '@/types';
 
 const STORAGE_KEY = 'sbs.preview.database.v1';
@@ -23,7 +24,7 @@ function readFromStorage(): PreviewDatabase | null {
 }
 
 function writeToStorage(database: PreviewDatabase) {
-  if (typeof window === 'undefined' || inMemoryOnly) return;
+  if (typeof window === 'undefined' || inMemoryOnly || isRemoteMode) return;
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(database));
   } catch {
@@ -35,12 +36,43 @@ function notify() {
   listeners.forEach((listener) => listener());
 }
 
+/** Empty shell used before the Supabase snapshot arrives (and on load failure). */
+export function emptyDatabase(): PreviewDatabase {
+  return {
+    version: 1,
+    sessionUserId: '',
+    settings: DEFAULT_SETTINGS,
+    profiles: [],
+    cycles: [],
+    assignments: [],
+    dailyScriptures: [],
+    personalStudies: [],
+    sharedTakeaways: [],
+    bookmarks: [],
+    reflections: [],
+    emailLog: [],
+    selectionHistory: [],
+    seededAt: new Date().toISOString(),
+    seeded: false,
+  };
+}
+
 export function getDatabase(): PreviewDatabase {
   if (cache) return cache;
+  if (isRemoteMode) {
+    cache = emptyDatabase();
+    return cache;
+  }
   const stored = readFromStorage();
   cache = stored ?? buildSeedDatabase(new Date());
   if (!stored) writeToStorage(cache);
   return cache;
+}
+
+/** Replace the whole snapshot — used after loading rows from Supabase. */
+export function hydrateDatabase(database: PreviewDatabase) {
+  cache = database;
+  notify();
 }
 
 export function subscribeToDatabase(listener: Listener): () => void {
@@ -65,6 +97,7 @@ export function setSessionUser(userId: PartnerId) {
 }
 
 export function resetDatabase() {
+  if (isRemoteMode) return;
   cache = buildSeedDatabase(new Date());
   inMemoryOnly = false;
   try {

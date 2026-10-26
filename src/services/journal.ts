@@ -1,3 +1,10 @@
+import { isRemoteMode } from '@/lib/supabase';
+import {
+  deleteBookmark as remoteDeleteBookmark,
+  insertBookmark,
+  updateBookmarkNote as remoteUpdateBookmarkNote,
+  upsertReflection,
+} from '@/services/remote';
 import { personalStudyService } from '@/services/personalStudy';
 import { getDatabase, mutateDatabase } from '@/services/storage';
 import type {
@@ -144,7 +151,7 @@ export const journalService: JournalService = {
     const existing = journalService.getBookmark(userId, passage.reference);
     if (existing) return existing;
     const bookmark: BookmarkRecord = {
-      id: `bm_${crypto.randomUUID()}`,
+      id: crypto.randomUUID(),
       userId,
       reference: passage.reference,
       translation: passage.translation,
@@ -156,6 +163,9 @@ export const journalService: JournalService = {
     mutateDatabase((draft) => {
       draft.bookmarks.push(bookmark);
     });
+    if (isRemoteMode) {
+      void insertBookmark(bookmark).catch((error: Error) => console.error(error.message));
+    }
     return bookmark;
   },
 
@@ -165,6 +175,11 @@ export const journalService: JournalService = {
       if (!target || target.userId !== userId) return;
       target.note = note;
     });
+    if (isRemoteMode) {
+      void remoteUpdateBookmarkNote(bookmarkId, note).catch((error: Error) =>
+        console.error(error.message),
+      );
+    }
   },
 
   removeBookmark(userId, bookmarkId) {
@@ -173,6 +188,9 @@ export const journalService: JournalService = {
         (entry) => !(entry.id === bookmarkId && entry.userId === userId),
       );
     });
+    if (isRemoteMode) {
+      void remoteDeleteBookmark(bookmarkId).catch((error: Error) => console.error(error.message));
+    }
   },
 
   saveReflection(userId, reference, body) {
@@ -189,10 +207,14 @@ export const journalService: JournalService = {
           target.isSample = false;
         }
       });
-      return { ...existing, body, updatedAt: now, isSample: false };
+      const updated: ReflectionRecord = { ...existing, body, updatedAt: now, isSample: false };
+      if (isRemoteMode) {
+        void upsertReflection(updated).catch((error: Error) => console.error(error.message));
+      }
+      return updated;
     }
     const reflection: ReflectionRecord = {
-      id: `rf_${crypto.randomUUID()}`,
+      id: crypto.randomUUID(),
       userId,
       reference,
       translation: 'NLT',
@@ -204,6 +226,9 @@ export const journalService: JournalService = {
     mutateDatabase((draft) => {
       draft.reflections.push(reflection);
     });
+    if (isRemoteMode) {
+      void upsertReflection(reflection).catch((error: Error) => console.error(error.message));
+    }
     return reflection;
   },
 };

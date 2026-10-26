@@ -1,6 +1,10 @@
 export type TranslationId = 'NLT';
 
-export type PartnerId = 'sam' | 'sammy';
+/**
+ * A partner id. In local preview mode this is 'sam' / 'sammy'; with Supabase it
+ * is the profile uuid from `public.profiles`.
+ */
+export type PartnerId = string;
 
 export interface PartnerProfile {
   id: PartnerId;

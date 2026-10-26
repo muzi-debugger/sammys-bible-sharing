@@ -138,13 +138,13 @@ started because your account is locked due to a billing issue.”*
 
 | # | Gap | Blocked on |
 | --- | --- | --- |
-| 1 | Data is per-browser `localStorage`; the two partners do not share a weekly cycle | Supabase project + schema |
-| 2 | Auth is client-side only (no password reset, no server session) | Supabase Auth |
-| 3 | Private notebooks are enforced in the service layer, not by RLS | Supabase RLS |
-| 4 | Monday 10:00 UTC selection and daily verse are simulated on page load | `pg_cron` + edge function |
-| 5 | No emails are sent | Email provider (Brevo/Resend) + edge function |
+| 1 | ~~Data is per-browser~~ — Supabase mode loads and writes real rows | env vars + redeploy |
+| 2 | ~~Auth is client-side~~ — Supabase Auth when `VITE_DATA_MODE=supabase` (password reset still missing) | code |
+| 3 | ~~Notebook privacy is service-layer only~~ — RLS `auth.uid() = user_id` | env vars + redeploy |
+| 4 | Monday 10:00 UTC selection and daily verse are simulated (`ensure_current_week()` RPC on login) | `pg_cron` + edge function |
+| 5 | No emails are sent | Email provider (Brevo) + edge function |
 | 6 | Every passage is a placeholder | API.Bible key **with NLT approved** |
-| 7 | Seed/sample data would mix with real data once a backend exists | seed flag per environment |
+| 7 | Seed data still backs local mode only; Supabase mode starts empty | done by design |
 | 8 | No automated tests (manual browser checks only) | code work |
 | 9 | No PWA manifest / install icon | code work |
 

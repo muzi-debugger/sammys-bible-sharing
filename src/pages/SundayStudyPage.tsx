@@ -290,12 +290,12 @@ export function SundayStudyPage() {
     setOpenPrompts(new Set());
   }, [assignment?.id, user.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const persist = useCallback(() => {
+  const persist = useCallback(async () => {
     const current = studyRef.current;
     if (!current) return;
     setSaveState('saving');
     try {
-      const updated = personalStudyService.save(user.id, current.id, valuesRef.current);
+      const updated = await personalStudyService.save(user.id, current.id, valuesRef.current);
       setStudy(updated);
       setLastSavedAt(updated.updatedAt);
       setSaveState('saved');
@@ -310,7 +310,7 @@ export function SundayStudyPage() {
     if (!fieldsDiffer(values, pickFields(study))) return;
     setSaveState('unsaved');
     if (timerRef.current) window.clearTimeout(timerRef.current);
-    timerRef.current = window.setTimeout(() => persist(), 900);
+    timerRef.current = window.setTimeout(() => void persist(), 900);
     return () => {
       if (timerRef.current) window.clearTimeout(timerRef.current);
     };
@@ -322,11 +322,11 @@ export function SundayStudyPage() {
       const current = studyRef.current;
       if (!current) return;
       if (fieldsDiffer(valuesRef.current, pickFields(current))) {
-        try {
-          personalStudyService.save(user.id, current.id, valuesRef.current);
-        } catch {
-          /* the error state is surfaced in the editor */
-        }
+        void personalStudyService
+          .save(user.id, current.id, valuesRef.current)
+          .catch(() => {
+            /* the error state is surfaced in the editor */
+          });
       }
     };
   }, [user.id]);
@@ -424,7 +424,7 @@ export function SundayStudyPage() {
                   <SaveStatus
                     state={saveState}
                     lastSavedAt={lastSavedAt}
-                    onRetry={persist}
+                    onRetry={() => void persist()}
                     className="pt-1"
                   />
                 </div>
@@ -505,9 +505,9 @@ export function SundayStudyPage() {
                 </div>
 
                 <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-sage/25 pt-4">
-                  <SaveStatus state={saveState} lastSavedAt={lastSavedAt} onRetry={persist} />
+                  <SaveStatus state={saveState} lastSavedAt={lastSavedAt} onRetry={() => void persist()} />
                   <div className="flex flex-wrap items-center gap-2">
-                    <Button variant="ghost" size="sm" icon={<Save size={13} />} onClick={persist}>
+                    <Button variant="ghost" size="sm" icon={<Save size={13} />} onClick={() => void persist()}>
                       Save now
                     </Button>
                     <Button

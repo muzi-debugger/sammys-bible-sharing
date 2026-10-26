@@ -99,6 +99,26 @@ If NLT is not approved for your key, the UI shows the error and keeps the NLT pr
 
 ## Accounts and privacy
 
+Two modes, selected by `VITE_DATA_MODE`:
+
+**`local`** (default) — everything in `localStorage`, no server. Useful for design work.
+
+**`supabase`** — real Supabase Auth + Postgres. Run `supabase/schema.sql` then
+`supabase/002-bootstrap.sql`, set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`, and the app:
+
+- signs in through `supabase.auth` (session persisted, refreshed automatically),
+- loads one snapshot of the household's cycles, assignments, daily passages and your own notes,
+- writes notebooks, bookmarks, reflections and shared takeaways straight to Postgres,
+- is protected by RLS: `personal_studies`, `bookmarks` and `reflections` are `auth.uid() = user_id`,
+  so the other partner's rows cannot be selected even with the anon key.
+
+`002-bootstrap.sql` also adds `handle_new_user()` (creates the household + profile with the free
+slot) and `ensure_current_week()` — an idempotent stand-in for the cron job that creates this
+week's cycle and two distinct assignments for the household.
+
+Invitations, the welcome name and email delivery recipients all still come from
+`VITE_PARTNER_*`, so the repository holds no addresses.
+
 - `/#/login` and `/#/register` are the only public routes; every other route is guarded.
 - Two invited identities come from `VITE_PARTNER_ONE_*` / `VITE_PARTNER_TWO_*`. Locally they live in
   `.env.local` (gitignored); on GitHub they come from repository secrets, so **the repo contains no

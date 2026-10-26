@@ -1,3 +1,5 @@
+import { isRemoteMode } from '@/lib/supabase';
+import { updateOwnProfile } from '@/services/remote';
 import { resetDatabase, getDatabase, mutateDatabase, setSessionUser } from '@/services/storage';
 import type { AppSettings, PartnerId, PreviewDatabase } from '@/types';
 
@@ -37,6 +39,12 @@ export const settingsService: SettingsService = {
         }
       }
     });
+    if (isRemoteMode) {
+      void updateOwnProfile(id, {
+        ...(patch.name ? { display_name: patch.name } : {}),
+        ...(patch.email ? { email: patch.email } : {}),
+      }).catch((error: Error) => console.error(error.message));
+    }
   },
 
   switchUser(id) {
