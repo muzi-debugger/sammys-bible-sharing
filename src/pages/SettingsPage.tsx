@@ -42,13 +42,11 @@ function PartnerCard({ partner, readOnly }: { partner: PartnerProfile; readOnly:
   const { notify } = useToast();
   const id = partner.id;
   const [name, setName] = useState(partner.name);
-  const [email, setEmail] = useState(partner.email);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setName(partner.name);
-    setEmail(partner.email);
-  }, [partner.name, partner.email]);
+  }, [partner.name]);
 
   const save = () => {
     if (readOnly) return;
@@ -56,12 +54,8 @@ function PartnerCard({ partner, readOnly }: { partner: PartnerProfile; readOnly:
       setError('A name is required.');
       return;
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-      setError('Enter a valid email address for weekly delivery.');
-      return;
-    }
-    settingsService.updatePartner(id, { name: name.trim(), email: email.trim() });
-    updateAccount(id, { name: name.trim(), email: email.trim() });
+    settingsService.updatePartner(id, { name: name.trim() });
+    updateAccount(id, { name: name.trim() });
     setError(null);
     notify(`${name.trim()}'s details saved.`);
   };
@@ -86,16 +80,6 @@ function PartnerCard({ partner, readOnly }: { partner: PartnerProfile; readOnly:
             value={name}
             disabled={readOnly}
             onChange={(event) => setName(event.target.value)}
-          />
-        </Field>
-        <Field label="Email address" htmlFor={`partner-email-${id}`}>
-          <input
-            id={`partner-email-${id}`}
-            type="email"
-            className={inputClass}
-            value={email}
-            disabled={readOnly}
-            onChange={(event) => setEmail(event.target.value)}
           />
         </Field>
       </div>
@@ -543,7 +527,7 @@ export function SettingsPage() {
               <div>
                 <p className="font-sans text-[0.85rem] font-medium text-charcoal">{user.name}</p>
                 <p className="font-sans text-[0.72rem] text-charcoal/50">
-                  {signedInAccount?.email ?? '—'}
+                  Private notebook · row level security
                 </p>
                 {signedInAccount?.lastSignInAt ? (
                   <p className="mt-0.5 font-sans text-[0.64rem] text-charcoal/35">

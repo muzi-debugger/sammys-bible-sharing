@@ -21,6 +21,8 @@ interface AuthContextValue {
   signOut: () => void;
   refreshAccounts: () => void;
   updateAccount: (id: Account['id'], patch: { name?: string; email?: string }) => void;
+  recoveryMode: boolean;
+  clearRecovery: () => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -55,11 +57,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [remoteAccount, setRemoteAccount] = useState<Account | null>(null);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [ready, setReady] = useState(false);
+  const [recoveryMode, setRecoveryMode] = useState(false);
 
   useEffect(() => {
     if (isRemoteMode && supabase) {
+      const client = supabase;
       let active = true;
-      void supabase.auth.getSession().then(({ data }) => {
+
+      const bootstrap = async () => {
+        // A recovery email lands on the site root with ?code=… (PKCE).
+        const code = new URLSearchParams(window.location.search).get('code');
+        if (code) {
+          const { data } = await client.auth.exchangeCodeForSession(code);
+          window.history.replaceState(
+            {},
+            '',
+            `${window.location.pathname}${window.location.hash}`,
+          );
+          if (!active) return;
+          if (data.session?.user) {
+            const mapped = fromSupabaseUser(data.session.user);
+            setSession(mapped.session);
+            setRemoteAccount(mapped.account);
+            setRecoveryMode(true);
+          }
+          setReady(true);
+          return;
+        }
+
+        const { data } = await client.auth.getSession();
         if (!active) return;
         if (data.session?.user) {
           const mapped = fromSupabaseUser(data.session.user);
@@ -67,7 +93,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setRemoteAccount(mapped.account);
         }
         setReady(true);
-      });
+      };
+
+      void bootstrap();
       const { data: subscription } = supabase.auth.onAuthStateChange((_event, nextSession) => {
         if (nextSession?.user) {
           const mapped = fromSupabaseUser(nextSession.user);
@@ -144,8 +172,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signOut,
       refreshAccounts,
       updateAccount,
+      recoveryMode,
+      clearRecovery: () => setRecoveryMode(false),
     }),
-    [ready, session, accounts, remoteAccount, signIn, register, signOut, refreshAccounts, updateAccount],
+    [ready, session, accounts, remoteAccount, signIn, register, signOut, refreshAccounts, updateAccount, recoveryMode],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

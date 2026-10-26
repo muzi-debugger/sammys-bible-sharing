@@ -29,7 +29,7 @@ export function Brand({ compact }: { compact?: boolean }) {
 
 export function AccountPanel() {
   const { user } = useApp();
-  const { signedInAccount, signOut } = useAuth();
+  const { signOut } = useAuth();
 
   return (
     <div className="rounded-journal border border-sage/35 bg-cream/40 p-3">
@@ -40,9 +40,7 @@ export function AccountPanel() {
           </span>
           <div className="min-w-0 leading-tight">
             <p className="truncate font-sans text-[0.78rem] font-medium text-charcoal">{user.name}</p>
-            <p className="truncate font-sans text-[0.62rem] text-charcoal/45">
-              {signedInAccount?.email ?? 'Signed in'}
-            </p>
+            <p className="truncate font-sans text-[0.62rem] text-charcoal/45">Private notebook</p>
           </div>
         </div>
         <Lock size={12} className="shrink-0 text-forest/40" />

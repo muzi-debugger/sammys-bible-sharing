@@ -4,7 +4,7 @@ import { ArrowRight, Lock, Mail, User } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { AuthLayout } from '@/components/AuthLayout';
 import { Button, Field, inputClass } from '@/components/ui/primitives';
-import { AuthError, resendConfirmation } from '@/services/auth';
+import { AuthError } from '@/services/auth';
 import { isRemoteMode } from '@/lib/supabase';
 
 export function RegisterPage() {
@@ -16,8 +16,6 @@ export function RegisterPage() {
   const [confirm, setConfirm] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [pendingEmail, setPendingEmail] = useState<string | null>(null);
-  const [resendState, setResendState] = useState<string | null>(null);
 
   if (session) return <Navigate to="/" replace />;
 
@@ -33,9 +31,6 @@ export function RegisterPage() {
       await register({ name, email, password });
       navigate('/', { replace: true });
     } catch (caught) {
-      if (caught instanceof AuthError && caught.code === 'confirm-email') {
-        setPendingEmail(email.trim());
-      }
       setError(
         caught instanceof AuthError ? caught.message : 'Unable to create the account. Try again.',
       );
@@ -149,39 +144,7 @@ export function RegisterPage() {
           </p>
         ) : null}
 
-        {pendingEmail ? (
-          <div className="rounded-journal border border-gold/45 bg-gold/[0.08] p-3.5">
-            <p className="font-sans text-[0.62rem] uppercase tracking-[0.16em] text-[#8a6f3f]">
-              Confirmation pending
-            </p>
-            <p className="mt-1.5 font-sans text-[0.74rem] leading-relaxed text-charcoal/60">
-              Your account exists for <strong className="font-medium">{pendingEmail}</strong> but
-              needs email confirmation before you can sign in. Check your inbox and spam folder.
-            </p>
-            <div className="mt-2.5 flex flex-wrap items-center gap-2">
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={async () => {
-                  setResendState('sending');
-                  const result = await resendConfirmation(pendingEmail);
-                  setResendState(result.ok ? 'sent' : result.detail);
-                }}
-              >
-                {resendState === 'sending' ? 'Sending…' : 'Resend confirmation'}
-              </Button>
-              {resendState === 'sent' ? (
-                <span className="font-sans text-[0.7rem] text-forest">Confirmation requested.</span>
-              ) : resendState && resendState !== 'sending' ? (
-                <span className="font-sans text-[0.7rem] text-terracotta">{resendState}</span>
-              ) : null}
-            </div>
-            <p className="mt-2 font-sans text-[0.66rem] leading-relaxed text-charcoal/45">
-              No email arriving? The project owner can turn off “Confirm email” in Supabase →
-              Authentication → Providers → Email, or point Supabase at a real SMTP provider.
-            </p>
-          </div>
-        ) : null}
+
 
         <Button type="submit" full disabled={busy} iconRight={<ArrowRight size={14} />}>
           {busy ? 'Creating account…' : 'Create my account'}

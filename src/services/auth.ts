@@ -205,32 +205,30 @@ export async function register({ name, email, password }: RegisterInput): Promis
         'This application is for two people. Only the two invited email addresses can create an account.',
       );
     }
-    const { data, error } = await supabase.auth.signUp({
-      email: normalised,
-      password,
-      options: { data: { display_name: name.trim() } },
+
+    // The invite rule is enforced server-side (service role, no confirmation email).
+    const { data, error } = await supabase.functions.invoke('create-account', {
+      body: { email: normalised, password, name: name.trim() },
     });
+
     if (error) {
+      const detail = await extractFunctionError(error);
       throw new AuthError(
-        error.message.toLowerCase().includes('already')
-          ? 'already-registered'
-          : 'not-invited',
-        error.message.toLowerCase().includes('already')
-          ? 'That account is already set up. Sign in with your password instead.'
-          : error.message,
+        /already|set up/i.test(detail) ? 'already-registered' : 'not-invited',
+        detail || 'Could not create the account.',
       );
     }
-    if (!data.session || !data.user) {
+
+    const status = (data as { status?: string } | null)?.status;
+    if (status === 'already-registered') {
       throw new AuthError(
-        'confirm-email',
-        'Almost there — open the confirmation email we just sent, then sign in.',
+        'already-registered',
+        'That account is already set up. Sign in, or use “Forgot password”.',
       );
     }
-    return {
-      userId: data.user.id,
-      email: data.user.email ?? normalised,
-      signedInAt: new Date().toISOString(),
-    };
+
+    // The account is active immediately — sign in to obtain a session.
+    return signIn(normalised, password);
   }
 
   const accounts = getAccounts();
@@ -269,18 +267,44 @@ export async function register({ name, email, password }: RegisterInput): Promis
   return session;
 }
 
-/** Re-sends the Supabase confirmation email for a pending signup. */
-export async function resendConfirmation(email: string): Promise<{ ok: boolean; detail: string }> {
+/** Sends the Supabase password-recovery link. */
+export async function requestPasswordReset(email: string): Promise<{ ok: boolean; detail: string }> {
   if (!isRemoteMode || !supabase) {
-    return { ok: false, detail: 'Confirmation email is only used with the Supabase backend.' };
+    return { ok: false, detail: 'Password reset needs the Supabase backend.' };
   }
-  const { error } = await supabase.auth.resend({ type: 'signup', email: email.trim() });
+  const redirectTo = `${window.location.origin}${window.location.pathname}`;
+  const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
+    redirectTo,
+  });
   return error
     ? { ok: false, detail: error.message }
-    : { ok: true, detail: 'Confirmation email requested.' };
+    : { ok: true, detail: 'If that address is invited, a reset link is on its way.' };
+}
+
+/** Sets a new password for the currently authenticated (recovery) session. */
+export async function updatePassword(password: string): Promise<{ ok: boolean; detail: string }> {
+  if (!isRemoteMode || !supabase) {
+    return { ok: false, detail: 'Password reset needs the Supabase backend.' };
+  }
+  if (password.length < 8) return { ok: false, detail: 'Use at least 8 characters.' };
+  const { error } = await supabase.auth.updateUser({ password });
+  return error ? { ok: false, detail: error.message } : { ok: true, detail: 'Password updated.' };
+}
+
+/** Reads the readable message out of a failed edge-function call. */
+async function extractFunctionError(error: unknown): Promise<string> {
+  const context = (error as { context?: { json?: () => Promise<{ error?: string }> } }).context;
+  try {
+    const payload = await context?.json?.();
+    if (payload?.error) return payload.error;
+  } catch {
+    /* fall through */
+  }
+  return (error as Error)?.message ?? 'Could not create the account.';
 }
 
 export function signOut() {
+
   if (isRemoteMode && supabase) {
     void supabase.auth.signOut();
     return;

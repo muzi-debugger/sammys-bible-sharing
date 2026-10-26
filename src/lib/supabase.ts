@@ -21,6 +21,9 @@ export const supabase: SupabaseClient | null = isRemoteMode
       auth: {
         persistSession: true,
         autoRefreshToken: true,
+        // PKCE makes emailed recovery links arrive as ?code=, which we exchange
+        // explicitly so HashRouter keeps working.
+        flowType: 'pkce',
         detectSessionInUrl: false,
       },
     })

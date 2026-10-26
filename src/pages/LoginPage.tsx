@@ -113,6 +113,15 @@ export function LoginPage() {
           {busy ? 'Signing in…' : 'Sign in'}
         </Button>
 
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <Link
+            to="/reset-password"
+            className="font-sans text-[0.72rem] text-charcoal/45 underline underline-offset-4 hover:text-forest"
+          >
+            Forgot password?
+          </Link>
+        </div>
+
         <p className="flex items-start gap-2 font-sans text-[0.66rem] leading-relaxed text-charcoal/40">
           <Lock size={11} className="mt-[3px] shrink-0 text-forest/40" />
           Access is limited to two invited addresses. Each has its own private notebook, and there is
