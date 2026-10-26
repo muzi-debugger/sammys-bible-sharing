@@ -153,7 +153,7 @@ scheduled runs would return 401 until `003-email-and-cron.sql` is re-run with th
 | # | Gap | Blocked on |
 | --- | --- | --- |
 | 1 | ~~Data is per-browser~~ — Supabase mode loads and writes real rows | env vars + redeploy |
-| 2 | ~~Auth is client-side~~ — Supabase Auth when `VITE_DATA_MODE=supabase` (password reset still missing) | code |
+| 2 | ~~Auth is client-side~~ — Supabase Auth + server-side invite gate (`create-account`), password reset via emailed PKCE link | Supabase SMTP for reset mail |
 | 3 | ~~Notebook privacy is service-layer only~~ — RLS `auth.uid() = user_id` | env vars + redeploy |
 | 4 | Monday 10:00 UTC selection and daily verse are simulated (`ensure_current_week()` RPC on login) | `pg_cron` + edge function |
 | 5 | ~~No emails are sent~~ — verified: Brevo accepted a **licensed NLT** daily email to a real address | cron secret must match the SQL |

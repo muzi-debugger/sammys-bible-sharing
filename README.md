@@ -135,6 +135,13 @@ week's cycle and two distinct assignments for the household.
 
 Invitations, the welcome name and email delivery recipients all still come from
 `VITE_PARTNER_*`, so the repository holds no addresses.
+- Registration goes through the `create-account` edge function: it validates the address against
+  `ALLOWED_EMAILS` server-side and creates the user with `email_confirm: true`, so no confirmation
+  email is needed. Any other address gets a 403.
+- Addresses are never displayed after sign-in — sidebar and Settings show names only.
+- Password reset emails a PKCE link (`?code=`), which the app exchanges before showing the
+  "choose a new password" screen. Supabase sends that mail, so configure
+  **Authentication → Emails → SMTP** (Brevo SMTP works) for reliable delivery.
 
 - `/#/login` and `/#/register` are the only public routes; every other route is guarded.
 - Two invited identities come from `VITE_PARTNER_ONE_*` / `VITE_PARTNER_TWO_*`. Locally they live in
