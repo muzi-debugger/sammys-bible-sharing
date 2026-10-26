@@ -155,9 +155,17 @@ async function sendViaBrevo(input: {
 }
 
 function parseSender(value: string): { email: string; name?: string } {
-  const match = /^(.*)<(.+)>$/.exec(value.trim());
-  if (match) return { name: match[1].trim() || undefined, email: match[2].trim() };
-  return { email: value.trim() };
+  const trimmed = value.trim();
+  const angle = /^(.*)<([^>]+)>$/.exec(trimmed);
+  if (angle) return { name: angle[1].trim() || undefined, email: angle[2].trim() };
+  const parts = trimmed.split(/\s+/);
+  const email = parts.find((part) => part.includes('@')) ?? trimmed;
+  const name = trimmed
+    .replace(email, '')
+    .trim()
+    .replace(/^["']|["']$/g, '')
+    .trim();
+  return { email, name: name || undefined };
 }
 
 Deno.serve(async (request) => {
@@ -206,8 +214,16 @@ Deno.serve(async (request) => {
   const results: unknown[] = [];
 
   if (mode === 'test') {
-    const to = callerEmail;
-    if (!to) return json({ error: 'No signed-in email for a test send' }, 400);
+    const to = callerEmail ?? (isCron ? (body.to ?? '').trim() : '');
+    if (!to) {
+      return json(
+        {
+          error:
+            'A test sent with the cron secret needs an explicit recipient: {"mode":"test","to":"you@example.com"}',
+        },
+        400,
+      );
+    }
     const sent = await sendViaBrevo({
       apiKey: brevoKey,
       from,

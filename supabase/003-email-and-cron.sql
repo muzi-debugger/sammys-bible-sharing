@@ -45,16 +45,19 @@ $$;
 
 grant execute on function public.ensure_today_daily() to authenticated;
 
--- 2. Schedules ---------------------------------------------------------------
+-- 2. Extensions --------------------------------------------------------------
 create extension if not exists pg_cron;
 create extension if not exists pg_net;
 
--- Monday 10:00 UTC — weekly Scripture email
-select cron.schedule(
-  'weekly-scripture-email',
-  '0 10 * * 1',
-  $$
-  select net.http_post(
+-- 3. Runners (one statement per job, so pg_cron is happy) --------------------
+create or replace function public.run_weekly_email()
+returns bigint
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  return net.http_post(
     url     := 'https://<PROJECT_REF>.supabase.co/functions/v1/send-email',
     headers := jsonb_build_object(
       'Content-Type', 'application/json',
@@ -63,16 +66,18 @@ select cron.schedule(
     body    := '{"mode":"weekly"}'::jsonb,
     timeout_milliseconds := 20000
   );
-  $$
-);
+end;
+$$;
 
--- 08:00 SAST (06:00 UTC) — daily encouragement
-select cron.schedule(
-  'daily-encouragement-email',
-  '0 6 * * *',
-  $$
-  select public.ensure_today_daily();
-  select net.http_post(
+create or replace function public.run_daily_email()
+returns bigint
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  perform public.ensure_today_daily();
+  return net.http_post(
     url     := 'https://<PROJECT_REF>.supabase.co/functions/v1/send-email',
     headers := jsonb_build_object(
       'Content-Type', 'application/json',
@@ -81,10 +86,29 @@ select cron.schedule(
     body    := '{"mode":"daily"}'::jsonb,
     timeout_milliseconds := 20000
   );
-  $$
-);
+end;
+$$;
 
--- Inspect runs later:
---   select * from cron.job;
+revoke all on function public.run_weekly_email() from anon, authenticated;
+revoke all on function public.run_daily_email() from anon, authenticated;
+
+-- 4. Schedules ---------------------------------------------------------------
+-- Monday 10:00 UTC — weekly Scripture email
+select cron.unschedule('weekly-scripture-email')
+where exists (select 1 from cron.job where jobname = 'weekly-scripture-email');
+
+select cron.schedule('weekly-scripture-email', '0 10 * * 1',
+                     'select public.run_weekly_email();');
+
+-- 08:00 SAST (06:00 UTC) — daily encouragement
+select cron.unschedule('daily-encouragement-email')
+where exists (select 1 from cron.job where jobname = 'daily-encouragement-email');
+
+select cron.schedule('daily-encouragement-email', '0 6 * * *',
+                     'select public.run_daily_email();');
+
+-- Verification queries:
+--   select jobname, schedule, active from cron.job;
 --   select * from cron.job_run_details order by start_time desc limit 20;
---   select * from public.email_deliveries order by created_at desc limit 20;
+--   select status, recipient, subject, created_at from public.email_deliveries
+--     order by created_at desc limit 20;
