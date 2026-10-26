@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { AuthLayout } from '@/components/AuthLayout';
 import { Button, Field, inputClass } from '@/components/ui/primitives';
 import { AuthError } from '@/services/auth';
+import { isRemoteMode } from '@/lib/supabase';
 
 export function RegisterPage() {
   const { session, register } = useAuth();
@@ -148,8 +149,9 @@ export function RegisterPage() {
         </Button>
 
         <p className="font-sans text-[0.66rem] leading-relaxed text-charcoal/40">
-          Your password is stored only in this browser for the preview, and your notebook is scoped
-          to your own account. No one else can open it.
+          {isRemoteMode
+            ? 'Your password is handled by Supabase Auth. Your notebook is scoped to your own account and protected by row level security — no one else can open it.'
+            : 'Your password is stored only in this browser for the preview, and your notebook is scoped to your own account. No one else can open it.'}
         </p>
       </form>
     </AuthLayout>
