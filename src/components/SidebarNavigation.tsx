@@ -116,7 +116,7 @@ export function SidebarNavigation() {
         <AccountPanel />
         <p className="mt-4 px-1 font-sans text-[0.6rem] leading-relaxed text-charcoal/35">
           {isRemoteMode
-            ? 'Stored in Supabase · preview passages · no emails yet'
+            ? 'Stored in Supabase · New Living Translation'
             : 'Preview build · data is stored locally in this browser. No emails are sent.'}
         </p>
       </div>

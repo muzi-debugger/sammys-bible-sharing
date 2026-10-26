@@ -195,37 +195,4 @@ as a Worker (URL `https://<worker>.<subdomain>.workers.dev`). If the dashboard s
 above covers build + assets) or switch to **Pages → Connect to Git**, which has better-known
 build-time environment variable handling for Vite.
 
-### Alternative: GitHub Pages (needs Actions)
 
-`.github/workflows/deploy.yml` builds with `npm ci && npm run build` and publishes `dist/`.
-`vite.config.ts` uses `base: './'` so the same artifact works at `/<repo>/`, `public/.nojekyll` is
-included, and `HashRouter` means no SPA rewrite rules are needed.
-
-```bash
-git init -b main && git add -A && git commit -m "Sammy's Bible Sharing"
-gh repo create sammys-bible-sharing --public --source=. --remote=origin --push
-gh api -X POST repos/:owner/sammys-bible-sharing/pages -f build_type=workflow
-gh workflow run deploy.yml
-```
-
-Then **Settings → Pages** shows `https://<user>.github.io/sammys-bible-sharing/`. Optional repo
-variable `VITE_BIBLE_PROVIDER=api-bible` and secret `VITE_API_BIBLE_KEY` feed the build.
-
-> **If GitHub Actions is unavailable** (for example “The job was not started because your account
-> is locked due to a billing issue”), Pages cannot be built by the workflow. Resolve the billing
-> issue in GitHub → Settings → Billing, or use Cloudflare Pages above. Do **not** commit a built
-> `dist/` with real addresses inside it — the VITE_ values are inlined into the bundle.
-
-## Next phases
-
-1. **Provider** — licence the NLT, deploy the proxy, flip `licensedProviderVerified`.
-2. **Backend** — apply `supabase/schema.sql`, replace the preview store with Supabase queries.
-3. **Automation** — deploy `supabase/functions/weekly-selection` with `pg_cron` at
-   `0 10 * * 1` UTC; Resend (or similar) for email with delivery webhooks.
-4. **Testing** — the acceptance list in the brief (distinct passages, verified NLT, correct
-   recipients, timezone handling, stable assignments, safe retries, privacy, failure handling).
-
-## Preview data
-
-Everything lives in this browser. Use **Settings → Reset preview data** to rebuild the seed.
-Entries seeded from sample content are labelled `Sample`; anything you write is marked as yours.

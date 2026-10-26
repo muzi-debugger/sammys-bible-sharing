@@ -131,8 +131,9 @@ Hardening: `preview_urls: false` so versioned preview URLs cannot bypass a futur
 policy. Recommended next: **Zero Trust → Access** on the workers.dev host, one-time PIN limited to
 the two partner addresses.
 
-GitHub Pages remains wired in `.github/workflows/deploy.yml` but cannot run: *“The job was not
-started because your account is locked due to a billing issue.”*
+GitHub Pages was removed: its Actions job could never start ("account locked due to a billing
+issue") and Cloudflare Workers is the only deployment target now. The workflow file is deleted and
+Pages is disabled on the repository.
 
 ### Verified against the live backend (2026-10-26)
 

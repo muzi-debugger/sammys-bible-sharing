@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { FileWarning, ShieldCheck } from 'lucide-react';
+import { isRemoteMode } from '@/lib/supabase';
 import { SidebarNavigation } from '@/components/SidebarNavigation';
 import { MobileHeader, MobileNavigation } from '@/components/MobileNavigation';
 import { InlineError } from '@/components/ui/states';
@@ -15,6 +16,18 @@ function ScrollToTop() {
 }
 
 function PreviewBanner() {
+  if (isRemoteMode) {
+    return (
+      <div className="mb-5 flex items-start gap-3 rounded-journal border border-sage/35 bg-cream/30 px-3.5 py-2.5 sm:mb-6 sm:px-4">
+        <ShieldCheck size={13} className="mt-0.5 shrink-0 text-forest/50" />
+        <p className="min-w-0 flex-1 font-sans text-[0.72rem] leading-relaxed text-charcoal/55">
+          Connected · New Living Translation via API.Bible · your notebook is private to your
+          account.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="mb-5 flex items-center gap-3 rounded-journal border border-gold/35 bg-gold/[0.07] px-3.5 py-2.5 sm:mb-6 sm:px-4">
       <span className="flex shrink-0 items-center gap-1.5 font-sans text-[0.66rem] font-medium uppercase tracking-[0.16em] text-[#8a6f3f]">

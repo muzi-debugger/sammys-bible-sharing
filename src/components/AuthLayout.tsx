@@ -84,7 +84,7 @@ export function AuthLayout({
 
       <p className="mt-6 max-w-md text-center font-sans text-[0.64rem] leading-relaxed text-charcoal/35">
         {isRemoteMode
-          ? 'Scripture and notebooks are stored in Supabase · NLT text pending a licence · no emails are sent yet.'
+          ? 'Scripture and notebooks are stored securely in Supabase · New Living Translation.'
           : 'Preview build · accounts and Scripture are stored in this browser only. No emails are sent and no NLT text is included.'}
       </p>
     </div>
