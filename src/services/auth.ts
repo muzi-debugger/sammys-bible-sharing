@@ -269,6 +269,17 @@ export async function register({ name, email, password }: RegisterInput): Promis
   return session;
 }
 
+/** Re-sends the Supabase confirmation email for a pending signup. */
+export async function resendConfirmation(email: string): Promise<{ ok: boolean; detail: string }> {
+  if (!isRemoteMode || !supabase) {
+    return { ok: false, detail: 'Confirmation email is only used with the Supabase backend.' };
+  }
+  const { error } = await supabase.auth.resend({ type: 'signup', email: email.trim() });
+  return error
+    ? { ok: false, detail: error.message }
+    : { ok: true, detail: 'Confirmation email requested.' };
+}
+
 export function signOut() {
   if (isRemoteMode && supabase) {
     void supabase.auth.signOut();
