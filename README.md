@@ -77,25 +77,19 @@ Read `docs/nlt-provider-verification.md`. Five providers were probed on 2026-10-
 `bible-api.com` (404 for NLT), `bible.helloao.org` (1,256 translations, no NLT),
 `api.getbible.net` (117, no NLT), `bolls.life` (no NLT), `wldeh/bible-api` (no English NLT).
 
-**Chosen provider: [API.Bible](https://api.bible)** — the American Bible Society platform that
-licenses the NLT. Its `/v1/bibles` endpoint answers `401 Missing API key`, which is expected: you
-request a free key and then request NLT access, which the rights holder (Tyndale) must approve.
-
-1. Create a key at <https://api.bible>.
-2. In the dashboard, request access to the **New Living Translation**.
-3. Enable the adapter:
+**Chosen provider: [API.Bible](https://api.bible)** — the key has the **NLT approved**
+(`d6e14a625393b4da-01`). The key lives only in the `bible` edge function; the browser calls that
+proxy via `VITE_BIBLE_PROVIDER_BASE_URL`, so no key ships in the bundle.
 
 ```bash
-# .env.local
-VITE_BIBLE_PROVIDER=api-bible
-VITE_API_BIBLE_KEY=your-key            # POC only — ships to the browser
-# or, better, point at a proxy instead of shipping a key:
-VITE_BIBLE_PROVIDER_BASE_URL=https://your-proxy.example.com/bible
+supabase functions deploy bible --no-verify-jwt
+supabase secrets set API_BIBLE_KEY=... API_BIBLE_BASE_URL=https://rest.api.bible/v1
 ```
 
-`ApiBibleProvider` resolves the NLT bible id at runtime (never hard-coded), converts
-`Psalm 23:1-6` → `PSA.23.1-6`, strips markup, and rejects any response that is not confirmed NLT.
-If NLT is not approved for your key, the UI shows the error and keeps the NLT preference.
+In Cloudflare set `VITE_BIBLE_PROVIDER_BASE_URL=https://<ref>.supabase.co/functions/v1/bible`
+(and **never** `VITE_API_BIBLE_KEY`). `send-email` also uses the key to upgrade placeholder rows to
+licensed text — `mode:"prepare"` runs on login and rewrites `weekly_assignments` and
+`daily_scriptures` in place.
 
 ## Email (Brevo)
 

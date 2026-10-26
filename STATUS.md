@@ -134,6 +134,19 @@ the two partner addresses.
 GitHub Pages remains wired in `.github/workflows/deploy.yml` but cannot run: *“The job was not
 started because your account is locked due to a billing issue.”*
 
+### Verified against the live backend (2026-10-26)
+
+- `send-email` deployed with secrets `BREVO_API_KEY`, `EMAIL_FROM`, `APP_URL`, `CRON_SECRET`,
+  `API_BIBLE_KEY`, `API_BIBLE_BASE_URL` (names only; values never read).
+- `POST {mode:"daily", to:"…"}` → `{"contentKind":"licensed","results":[{"status":"accepted"}]}`
+  — Brevo accepted a real New Living Translation email.
+- `bible` proxy: `/translations` → NLT licensed; `/passage?reference=Psalm%2023:1-6` →
+  licensed text, Tyndale attribution, no key in the response.
+- API.Bible key has **NLT approved** (`d6e14a625393b4da-01`), plus NLTCE and NLTUK.
+
+**Outstanding config:** the `pg_cron` runners still hold an older `x-cron-secret` value, so
+scheduled runs would return 401 until `003-email-and-cron.sql` is re-run with the current secret.
+
 ## 4. Remaining gaps to close before it is a real two-person app
 
 | # | Gap | Blocked on |
@@ -142,8 +155,8 @@ started because your account is locked due to a billing issue.”*
 | 2 | ~~Auth is client-side~~ — Supabase Auth when `VITE_DATA_MODE=supabase` (password reset still missing) | code |
 | 3 | ~~Notebook privacy is service-layer only~~ — RLS `auth.uid() = user_id` | env vars + redeploy |
 | 4 | Monday 10:00 UTC selection and daily verse are simulated (`ensure_current_week()` RPC on login) | `pg_cron` + edge function |
-| 5 | Emails implemented server-side (`send-email` edge function + `pg_cron`) | Deploy function + Brevo API key |
-| 6 | Every passage is a placeholder | API.Bible key **with NLT approved** |
+| 5 | ~~No emails are sent~~ — verified: Brevo accepted a **licensed NLT** daily email to a real address | cron secret must match the SQL |
+| 6 | ~~Every passage is a placeholder~~ — API.Bible key carries an approved **NLT** bible; `bible` proxy + `prepare` mode upgrade rows to licensed text | Cloudflare env vars |
 | 7 | Seed data still backs local mode only; Supabase mode starts empty | done by design |
 | 8 | No automated tests (manual browser checks only) | code work |
 | 9 | No PWA manifest / install icon | code work |

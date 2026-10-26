@@ -423,11 +423,11 @@ Deno.serve(async (request) => {
       () => undefined,
       () => undefined,
     );
-    const today = new Date().toISOString().slice(0, 10);
+    const prepareToday = new Date().toISOString().slice(0, 10);
     const { data: daily } = await admin
       .from('daily_scriptures')
       .select('day, reference, passage_text, attribution, content_kind')
-      .eq('day', today)
+      .eq('day', prepareToday)
       .maybeSingle();
 
     let dailyUpgraded = false;
@@ -446,7 +446,7 @@ Deno.serve(async (request) => {
             attribution: content.attribution,
             content_kind: 'licensed',
           })
-          .eq('day', today);
+          .eq('day', prepareToday);
         dailyUpgraded = true;
       }
     }
@@ -530,15 +530,21 @@ Deno.serve(async (request) => {
       () => undefined,
       () => undefined,
     );
-
     const today = new Date().toISOString().slice(0, 10);
-    const { data: daily } = await admin
+    const { data: daily, error: dailyError } = await admin
       .from('daily_scriptures')
       .select('day, reference, passage_text, attribution, content_kind, theme')
       .eq('day', today)
       .maybeSingle();
 
-    if (!daily) return json({ mode, skipped: 'no daily scripture for today' });
+    if (!daily) {
+      return json({
+        mode,
+        skipped: 'no daily scripture for today',
+        dailyError: dailyError?.message ?? null,
+        hint: 'Run supabase/003-email-and-cron.sql so ensure_today_daily() exists.',
+      });
+    }
 
     const content = await resolveContent(
       daily.reference,
