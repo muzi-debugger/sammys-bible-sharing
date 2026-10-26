@@ -1,0 +1,18 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "sammys-bible-sharing",
+  "compatibility_date": "2026-10-26",
+  // Static SPA: Wrangler uploads the Vite build output and serves index.html
+  // for unknown paths. HashRouter means deep links never hit the server anyway.
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application"
+  },
+  // `npx wrangler deploy` builds first, so the dist/ directory always exists.
+  "build": {
+    "command": "npm run build"
+  },
+  "observability": {
+    "enabled": true
+  }
+}
