@@ -30,6 +30,12 @@ jobs:
       - name: Build
         run: npm run build
         env:
+          # Partner identities come from repository secrets so the public repo
+          # contains no personal email addresses.
+          VITE_PARTNER_ONE_NAME: ${{ vars.VITE_PARTNER_ONE_NAME }}
+          VITE_PARTNER_ONE_EMAIL: ${{ secrets.VITE_PARTNER_ONE_EMAIL }}
+          VITE_PARTNER_TWO_NAME: ${{ vars.VITE_PARTNER_TWO_NAME }}
+          VITE_PARTNER_TWO_EMAIL: ${{ secrets.VITE_PARTNER_TWO_EMAIL }}
           # Set VITE_BIBLE_PROVIDER=api-bible as a repository variable once you
           # have NLT access approved on API.Bible.
           VITE_BIBLE_PROVIDER: ${{ vars.VITE_BIBLE_PROVIDER }}

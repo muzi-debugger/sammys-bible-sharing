@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { AuthLayout } from '@/components/AuthLayout';
 import { Button, Field, inputClass } from '@/components/ui/primitives';
 import { AuthError } from '@/services/auth';
+import { identitiesConfigured } from '@/lib/identities';
 
 export function LoginPage() {
   const { session, signIn } = useAuth();
@@ -48,6 +49,19 @@ export function LoginPage() {
       }
     >
       <form className="space-y-4" onSubmit={submit} noValidate>
+        {!identitiesConfigured ? (
+          <p
+            role="status"
+            className="rounded-[9px] border border-gold/45 bg-gold/[0.08] px-3.5 py-2.5 font-sans text-[0.74rem] leading-relaxed text-[#8a6f3f]"
+          >
+            This build has no partner addresses configured. Set
+            <code className="mx-1 font-mono text-[0.7rem]">VITE_PARTNER_ONE_EMAIL</code>
+            and
+            <code className="mx-1 font-mono text-[0.7rem]">VITE_PARTNER_TWO_EMAIL</code>
+            and rebuild.
+          </p>
+        ) : null}
+
         <Field label="Email address" htmlFor="login-email">
           <div className="relative">
             <Mail

@@ -91,9 +91,12 @@ passages (different reference, book and theme), ownership checks on every notebo
 ### 🔴 Backend, scheduler, accounts — preview only
 - Persistence is `localStorage` under `sbs.preview.database.v1`. Data is **per browser profile**,
   so Sam and Sammy do not share data across devices.
-- Authentication now exists as a flow (`src/services/auth.ts`, `AuthProvider`, route guards): two
-  hard-coded invited emails, salted SHA-256 password digests in `sbs.accounts.v1`, session in
-  `sbs.session.v1`. It gates the whole app and there is no account switching — but it is
+- Two invited identities come from env vars (`VITE_PARTNER_ONE_*`, `VITE_PARTNER_TWO_*`) —
+  `.env.local` locally (gitignored), repository secrets in CI — so no addresses exist in the repo
+  or on the sign-in page. Only those addresses may register; first registration sets the password.
+- Authentication is a real flow (`src/services/auth.ts`, `AuthProvider`, route guards): salted
+  SHA-256 password digests in `sbs.accounts.v1`, session in `sbs.session.v1`. It gates the whole
+  app and there is no account switching — but it is
   **client-side only**, so it is not a security boundary against someone with browser access.
   Replace with Supabase Auth when the backend lands; the guards stay the same.
 - The Monday 10:00 UTC job is simulated once on load (`origin: "preview-simulation"`), clearly

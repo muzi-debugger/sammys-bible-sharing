@@ -1,4 +1,5 @@
 import { DAILY_REFERENCE_POOL, WEEKLY_REFERENCE_POOL } from '@/data/references';
+import { PARTNER_IDENTITIES } from '@/lib/identities';
 import { addDays, cycleIdFor, selectionDateFor, startOfWeekUtc, toIsoDate } from '@/lib/dates';
 import { makePlaceholderPassage } from '@/services/passageFactory';
 import type {
@@ -15,19 +16,9 @@ import type {
   WeeklyCycle,
 } from '@/types';
 
-export const PROFILE_SAM: PartnerProfile = {
-  id: 'sam',
-  name: 'Sam',
-  email: 'meneer.mzolo@gmail.com',
-  initials: 'S',
-};
+export const PROFILE_SAM: PartnerProfile = { ...PARTNER_IDENTITIES[0] };
 
-export const PROFILE_SAMMY: PartnerProfile = {
-  id: 'sammy',
-  name: 'Sammy',
-  email: 'ntswakithipe@icloud.com',
-  initials: 'S',
-};
+export const PROFILE_SAMMY: PartnerProfile = { ...PARTNER_IDENTITIES[1] };
 
 const PROVIDER_ID = 'preview';
 const PROVIDER_NAME = 'Preview provider (no licensed NLT source configured)';

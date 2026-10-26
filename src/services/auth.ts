@@ -1,3 +1,4 @@
+import { PARTNER_IDENTITIES } from '@/lib/identities';
 import type { PartnerId } from '@/types';
 
 /**
@@ -37,11 +38,9 @@ export interface RegisterInput {
   password: string;
 }
 
-/** The two invited identities for the POC. Emails are fixed; names are editable in Settings. */
-export const INVITED_ACCOUNTS: Array<Pick<Account, 'id' | 'name' | 'email'>> = [
-  { id: 'sam', name: 'Sam', email: 'meneer.mzolo@gmail.com' },
-  { id: 'sammy', name: 'Sammy', email: 'ntswakithipe@icloud.com' },
-];
+/** The two invited identities. Configured through env vars so the repo holds no addresses. */
+export const INVITED_ACCOUNTS: Array<Pick<Account, 'id' | 'name' | 'email'>> =
+  PARTNER_IDENTITIES.map(({ id, name, email }) => ({ id, name, email }));
 
 export class AuthError extends Error {
   readonly code:

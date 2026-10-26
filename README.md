@@ -100,15 +100,26 @@ If NLT is not approved for your key, the UI shows the error and keeps the NLT pr
 ## Accounts and privacy
 
 - `/#/login` and `/#/register` are the only public routes; every other route is guarded.
-- Two invited identities are hard-coded for the POC in `src/services/auth.ts`. Only those two
-  addresses may register; the first registration sets the password. The sign-in page never lists
-  them, so the addresses are not exposed publicly.
+- Two invited identities come from `VITE_PARTNER_ONE_*` / `VITE_PARTNER_TWO_*`. Locally they live in
+  `.env.local` (gitignored); on GitHub they come from repository secrets, so **the repo contains no
+  personal addresses**. Only those two addresses may register; the first registration sets the
+  password, and the sign-in page never lists them.
 - There is no account switcher. Sign out and back in with the other partner's credentials to see
   their notebook — that is the only way, and the UI never offers a shortcut.
 - The welcome message, sidebar and every email use the signed-in account's name and address; edits
   in Settings are written back to the account.
 - Passwords are salted SHA-256 digests in `localStorage` (`sbs.accounts.v1`). This proves the flow
   but is **not** a real security boundary — replace with Supabase Auth when the backend lands.
+
+```bash
+cp .env.example .env.local   # fill in the two partner names and addresses
+npm run dev
+```
+
+On GitHub, set repository **secrets** `VITE_PARTNER_ONE_EMAIL`, `VITE_PARTNER_TWO_EMAIL` and
+repository **variables** `VITE_PARTNER_ONE_NAME`, `VITE_PARTNER_TWO_NAME` before the first deploy.
+Without the emails the build still runs, but it shows a “no partner addresses configured” notice
+and nobody can sign in.
 
 ## Deploying to GitHub Pages (free)
 
