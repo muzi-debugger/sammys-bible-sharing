@@ -223,7 +223,7 @@ export function WeeklyScripturesPage() {
               id="cycle-select"
               value={activeCycle?.id ?? ''}
               onChange={(event) => setSelectedCycleId(event.target.value)}
-              className="w-full appearance-none rounded-[10px] border border-sage/50 bg-soft-white py-2.5 pl-3.5 pr-9 font-sans text-[0.8rem] text-charcoal focus:border-forest/50 focus:outline-none sm:w-[240px]"
+              className="w-full appearance-none bg-none rounded-[10px] border border-sage/50 bg-soft-white py-2.5 pl-3.5 pr-9 font-sans text-[0.8rem] text-charcoal focus:border-forest/50 focus:outline-none sm:w-[240px]"
             >
               {cycles.map((entry) => (
                 <option key={entry.id} value={entry.id}>

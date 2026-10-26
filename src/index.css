@@ -10,15 +10,47 @@
   html {
     -webkit-text-size-adjust: 100%;
     scroll-behavior: smooth;
+    /* Safety net: nothing should be able to scroll the page sideways. */
+    overflow-x: clip;
+  }
+
+  @supports not (overflow: clip) {
+    html {
+      overflow-x: hidden;
+    }
   }
 
   body {
     @apply bg-ivory font-sans text-charcoal antialiased;
     min-height: 100vh;
+    overflow-wrap: break-word;
     background-image:
       radial-gradient(circle at 12% -10%, rgba(197, 164, 109, 0.13), transparent 42%),
       radial-gradient(circle at 92% 6%, rgba(166, 179, 155, 0.16), transparent 38%);
     background-attachment: fixed;
+  }
+
+  /* iOS Safari zooms the page when a control under 16px gets focus, which
+     leaves the layout panned sideways. Real 16px controls stop that. */
+  @media (max-width: 640px) {
+    input:not([type='checkbox']):not([type='radio']),
+    select,
+    textarea:not(.writing-area) {
+      font-size: 16px !important;
+    }
+  }
+
+  /* iOS also sizes selects to their widest option; strip the native styling so
+     they obey the container width, then draw our own chevron. */
+  select {
+    -webkit-appearance: none;
+    appearance: none;
+    max-width: 100%;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5l5-5' fill='none' stroke='%23302F2A' stroke-opacity='0.45' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.7rem center;
+    background-size: 12px 8px;
+    padding-right: 2.1rem;
   }
 
   /* Paper grain, kept extremely subtle so Scripture stays the focus. */

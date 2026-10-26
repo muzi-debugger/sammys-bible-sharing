@@ -9,12 +9,12 @@ import { useAuth } from '@/context/AuthContext';
 
 export function Brand({ compact }: { compact?: boolean }) {
   return (
-    <div className="flex items-center gap-3">
-      <span className="flex h-10 w-10 items-center justify-center rounded-full border border-sage/50 bg-cream/60 text-forest">
+    <div className="flex min-w-0 items-center gap-3">
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-sage/50 bg-cream/60 text-forest">
         <OpenBook className="h-5 w-5" />
       </span>
-      <span className="leading-tight">
-        <span className="block font-serif text-[1.12rem] tracking-[0.01em] text-forest">
+      <span className="min-w-0 leading-tight">
+        <span className="block truncate font-serif text-[1.12rem] tracking-[0.01em] text-forest">
           Sammy&rsquo;s Bible Sharing
         </span>
         {!compact ? (

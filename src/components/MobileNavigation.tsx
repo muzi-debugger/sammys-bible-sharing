@@ -12,14 +12,16 @@ export function MobileHeader() {
 
   return (
     <header className="sticky top-0 z-30 border-b border-sage/25 bg-ivory/90 backdrop-blur-md md:hidden">
-      <div className="flex items-center justify-between gap-3 px-4 py-3">
-        <Brand compact />
-        <div className="flex items-center gap-2">
+      <div className="flex min-w-0 items-center justify-between gap-2 px-3 py-3 sm:gap-3 sm:px-4">
+        <div className="min-w-0">
+          <Brand compact />
+        </div>
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
           <span className="flex items-center gap-2 rounded-full border border-sage/50 bg-cream/50 px-2 py-1.5">
-            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-forest font-serif text-[0.7rem] text-ivory">
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-forest font-serif text-[0.7rem] text-ivory">
               {user.initials}
             </span>
-            <span className="font-sans text-[0.62rem] uppercase tracking-[0.1em] text-charcoal/60">
+            <span className="hidden max-w-[5.5rem] truncate font-sans text-[0.62rem] uppercase tracking-[0.1em] text-charcoal/60 min-[380px]:inline">
               {user.name}
             </span>
           </span>

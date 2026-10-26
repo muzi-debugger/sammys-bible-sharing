@@ -158,7 +158,7 @@ export function Field({
 }
 
 export const inputClass =
-  'w-full rounded-[10px] border border-sage/45 bg-soft-white px-3.5 py-2.5 font-sans text-[0.86rem] text-charcoal transition-colors duration-300 ease-gentle placeholder:text-charcoal/30 focus:border-forest/50 focus:outline-none';
+  'w-full min-w-0 max-w-full rounded-[10px] border border-sage/45 bg-soft-white px-3.5 py-2.5 font-sans text-[0.86rem] text-charcoal transition-colors duration-300 ease-gentle placeholder:text-charcoal/30 focus:border-forest/50 focus:outline-none';
 
 export function Toggle({
   checked,
