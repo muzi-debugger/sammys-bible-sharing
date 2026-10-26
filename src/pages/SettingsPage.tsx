@@ -13,7 +13,8 @@ import {
 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
-import { isRemoteMode } from '@/lib/supabase';
+import { isRemoteMode, remoteConfig } from '@/lib/supabase';
+import { capabilities } from '@/lib/capabilities';
 import { sendTestEmail } from '@/services/remote';
 import type { PartnerProfile } from '@/types';
 import { Badge, Button, Card, Field, SectionHeading, Toggle, inputClass } from '@/components/ui/primitives';
@@ -373,11 +374,11 @@ export function SettingsPage() {
               },
               {
                 label: 'Licence covers web display and email reproduction',
-                ok: settings.translation.licensedProviderVerified,
+                ok: providerConnected && capabilities.nltLicensed,
               },
               {
                 label: 'Caching and storage terms documented',
-                ok: settings.translation.licensedProviderVerified,
+                ok: providerConnected && capabilities.nltLicensed,
               },
             ].map((item) => (
               <p key={item.label} className="flex items-center gap-2 font-sans text-[0.76rem] text-charcoal/60">
@@ -601,7 +602,7 @@ export function SettingsPage() {
             <p className="flex items-center gap-2 font-sans text-[0.7rem] text-charcoal/45">
               <Database size={12} className="text-forest/40" />
               {isRemoteMode ? (
-                <>Stored in Supabase Postgres · <code className="font-mono text-[0.68rem]">iihmeoccxvjfvnwcuanq</code></>
+                <>Stored in Supabase Postgres · <code className="font-mono text-[0.68rem]">{remoteConfig.url.replace(/^https?:\/\//, '')}</code></>
               ) : (
                 <>Stored in localStorage under <code className="font-mono text-[0.68rem]">sbs.preview.database.v1</code></>
               )}

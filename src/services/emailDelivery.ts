@@ -72,7 +72,9 @@ function previewDelivery(recipient: string, subject: string, kind: EmailAttempt[
 export class PreviewEmailDeliveryService implements EmailDeliveryService {
   async deliverWeeklyScripture({ partner, assignment }: WeeklyEmailInput): Promise<EmailDelivery> {
     await wait(160);
-    if (partner.email !== assignment.emailDelivery.recipient) {
+    // The browser intentionally holds no addresses, so only compare when one is
+    // actually known — otherwise an empty value would look like a mismatch.
+    if (partner.email && partner.email !== assignment.emailDelivery.recipient) {
       return {
         status: 'failed',
         recipient: partner.email,

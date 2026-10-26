@@ -50,6 +50,11 @@ create extension if not exists pg_cron;
 create extension if not exists pg_net;
 
 -- 3. Runners (one statement per job, so pg_cron is happy) --------------------
+-- SUPERSEDED BY 004-fix-cron-secret.sql.
+-- The versions below used the literal placeholder `x-cron-secret: 'blank'`,
+-- which the send-email function rejects with 401, so scheduled delivery never
+-- worked. Run 004-fix-cron-secret.sql after this file: it replaces both
+-- functions so the secret is read from public.app_config instead.
 create or replace function public.run_weekly_email()
 returns bigint
 language plpgsql

@@ -3,17 +3,22 @@ import type { PartnerId } from '@/types';
 /**
  * The two partner identities.
  *
- * The real names and addresses live in `.env.local` (gitignored) for local use
- * and in GitHub Actions secrets for the deployed build, so the repository itself
- * never contains personal email addresses.
+ * Only display names are configurable, because a name is the only identity data
+ * the browser actually needs. Email addresses are deliberately NOT read from the
+ * environment here: every `VITE_*` value is inlined into the public JavaScript
+ * bundle, so building addresses in would publish both private emails to anyone
+ * who opens the site.
  *
- *   VITE_PARTNER_ONE_NAME / VITE_PARTNER_ONE_EMAIL
- *   VITE_PARTNER_TWO_NAME / VITE_PARTNER_TWO_EMAIL
+ * The real addresses live only in:
+ *   - Supabase Auth (the accounts themselves)
+ *   - the `ALLOWED_EMAILS` secret read by the `create-account` edge function
+ *   - the `email_recipient` column of each assignment row
+ *
+ *   VITE_PARTNER_ONE_NAME / VITE_PARTNER_TWO_NAME
  */
 export interface PartnerIdentity {
   id: PartnerId;
   name: string;
-  email: string;
   initials: string;
 }
 
@@ -32,19 +37,19 @@ function initialsFor(name: string): string {
 
 const oneName = envValue(import.meta.env.VITE_PARTNER_ONE_NAME, 'Partner one');
 const twoName = envValue(import.meta.env.VITE_PARTNER_TWO_NAME, 'Partner two');
-const oneEmail = envValue(import.meta.env.VITE_PARTNER_ONE_EMAIL, 'partner.one@example.invalid');
-const twoEmail = envValue(import.meta.env.VITE_PARTNER_TWO_EMAIL, 'partner.two@example.invalid');
 
 export const PARTNER_IDENTITIES: [PartnerIdentity, PartnerIdentity] = [
-  { id: 'sam', name: oneName, email: oneEmail, initials: initialsFor(oneName) },
-  { id: 'sammy', name: twoName, email: twoEmail, initials: initialsFor(twoName) },
+  { id: 'sam', name: oneName, initials: initialsFor(oneName) },
+  { id: 'sammy', name: twoName, initials: initialsFor(twoName) },
 ];
 
-/** False when the build has no partner addresses, so the UI can say so instead of pretending. */
-export const identitiesConfigured = Boolean(
-  import.meta.env.VITE_PARTNER_ONE_EMAIL?.trim() &&
-    import.meta.env.VITE_PARTNER_TWO_EMAIL?.trim(),
-);
+/**
+ * Non-routable addresses used only by the browser-only demo store, so a local
+ * build never needs (or contains) a real address.
+ */
+export function localDemoEmail(id: PartnerId): string {
+  return `${id}@partner.local`;
+}
 
 export function identityFor(id: PartnerId): PartnerIdentity {
   return PARTNER_IDENTITIES.find((identity) => identity.id === id) ?? PARTNER_IDENTITIES[0];

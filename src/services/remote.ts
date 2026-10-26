@@ -29,7 +29,6 @@ interface ProfileRow {
   id: string;
   household_id: string;
   display_name: string;
-  email: string;
   slot: 'sam' | 'sammy';
 }
 
@@ -126,7 +125,9 @@ function mapProfile(row: ProfileRow): PartnerProfile {
   return {
     id: row.id,
     name: row.display_name,
-    email: row.email,
+    // Addresses are intentionally not selected: one partner has no business
+    // reading the other's address from the browser.
+    email: '',
     initials: initialsFor(row.display_name),
   };
 }
@@ -135,7 +136,9 @@ function pendingProfile(slot: PartnerIdentity): PartnerProfile {
   return {
     id: `pending-${slot.id}`,
     name: slot.name,
-    email: slot.email,
+    // The partner has not registered yet, so their address is genuinely unknown
+    // to the browser — and it is never fetched just to fill a placeholder.
+    email: '',
     initials: slot.initials,
   };
 }
@@ -155,7 +158,7 @@ export async function loadSnapshot(userId: string): Promise<PreviewDatabase> {
 
   const [profilesRes, cyclesRes, assignmentsRes, dailyRes, studiesRes, sharedRes, bookmarksRes, reflectionsRes] =
     await Promise.all([
-      db.from('profiles').select('*'),
+      db.from('profiles').select('id, household_id, display_name, slot'),
       db.from('weekly_cycles').select('*').order('week_start', { ascending: true }),
       db.from('weekly_assignments').select('*'),
       db.from('daily_scriptures').select('*').order('day', { ascending: true }),

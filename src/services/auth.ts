@@ -1,4 +1,4 @@
-import { PARTNER_IDENTITIES } from '@/lib/identities';
+import { PARTNER_IDENTITIES, localDemoEmail } from '@/lib/identities';
 import { isRemoteMode, supabase } from '@/lib/supabase';
 import { updateOwnProfile } from '@/services/remote';
 import type { PartnerId } from '@/types';
@@ -40,9 +40,9 @@ export interface RegisterInput {
   password: string;
 }
 
-/** The two invited identities. Configured through env vars so the repo holds no addresses. */
+/** The two invited identities. Names only: addresses are never shipped to the browser. */
 export const INVITED_ACCOUNTS: Array<Pick<Account, 'id' | 'name' | 'email'>> =
-  PARTNER_IDENTITIES.map(({ id, name, email }) => ({ id, name, email }));
+  PARTNER_IDENTITIES.map(({ id, name }) => ({ id, name, email: localDemoEmail(id) }));
 
 export class AuthError extends Error {
   readonly code:
@@ -196,16 +196,9 @@ export async function register({ name, email, password }: RegisterInput): Promis
   const normalised = email.trim().toLowerCase();
 
   if (isRemoteMode && supabase) {
-    const invited = PARTNER_IDENTITIES.some(
-      (identity) => identity.email.toLowerCase() === normalised,
-    );
-    if (!invited) {
-      throw new AuthError(
-        'not-invited',
-        'This application is for two people. Only the two invited email addresses can create an account.',
-      );
-    }
-
+    // No client-side invite list: the browser never learns the invited
+    // addresses. `create-account` checks ALLOWED_EMAILS server-side and answers
+    // 403 with the same message this throws.
     // The invite rule is enforced server-side (service role, no confirmation email).
     const { data, error } = await supabase.functions.invoke('create-account', {
       body: { email: normalised, password, name: name.trim() },
