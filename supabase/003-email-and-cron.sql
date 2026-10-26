@@ -58,10 +58,10 @@ set search_path = public
 as $$
 begin
   return net.http_post(
-    url     := 'https://<PROJECT_REF>.supabase.co/functions/v1/send-email',
+    url     := 'https://iihmeoccxvjfvnwcuanq.supabase.co/functions/v1/send-email',
     headers := jsonb_build_object(
       'Content-Type', 'application/json',
-      'x-cron-secret', '<EDGE_CRON_SECRET>'
+      'x-cron-secret', 'blank'
     ),
     body    := '{"mode":"weekly"}'::jsonb,
     timeout_milliseconds := 20000
@@ -78,10 +78,10 @@ as $$
 begin
   perform public.ensure_today_daily();
   return net.http_post(
-    url     := 'https://<PROJECT_REF>.supabase.co/functions/v1/send-email',
+    url     := 'https://iihmeoccxvjfvnwcuanq.supabase.co/functions/v1/send-email',
     headers := jsonb_build_object(
       'Content-Type', 'application/json',
-      'x-cron-secret', '<EDGE_CRON_SECRET>'
+      'x-cron-secret', 'blank'
     ),
     body    := '{"mode":"daily"}'::jsonb,
     timeout_milliseconds := 20000

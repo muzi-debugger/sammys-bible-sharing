@@ -356,20 +356,17 @@ export class ApiBibleProvider implements BibleProvider {
     }
 
     const bibleId = await this.resolveBibleId();
-    const range =
+    // API.Bible wants fully-qualified verse ranges: PSA.23.1-PSA.23.6
+    const passageId =
       parsed.verseEnd && parsed.verseEnd !== parsed.verseStart
-        ? `${parsed.verseStart}-${parsed.verseEnd}`
-        : `${parsed.verseStart}`;
-    const passageId = `${bookId}.${parsed.chapter}.${range}`;
+        ? `${bookId}.${parsed.chapter}.${parsed.verseStart}-${bookId}.${parsed.chapter}.${parsed.verseEnd}`
+        : `${bookId}.${parsed.chapter}.${parsed.verseStart}`;
 
+    // Only these params are accepted for passages; extras return 400.
     const query = new URLSearchParams({
       'content-type': 'text',
       'include-verse-numbers': 'false',
       'include-chapter-numbers': 'false',
-      'include-first-verse-numbers': 'false',
-      'include-titles': 'false',
-      'include-notes': 'false',
-      'include-verse-spans': 'false',
     });
 
     const payload = await this.request<{ data?: ApiBiblePassagePayload }>(

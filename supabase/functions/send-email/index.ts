@@ -67,19 +67,24 @@ const shell = (title: string, intro: string, body: string, footer: string) => `
   </div>
 </div>`;
 
-function weeklyHtml(name: string, row: AssignmentRow, appUrl: string): string {
-  const isPlaceholder = row.content_kind === 'placeholder';
+function weeklyHtml(
+  name: string,
+  row: AssignmentRow,
+  content: { text: string; attribution: string; contentKind: 'licensed' | 'placeholder'; reference: string },
+  appUrl: string,
+): string {
+  const isPlaceholder = content.contentKind === 'placeholder';
   const passage = isPlaceholder
     ? `<p style="margin:0 0 12px;font-size:13px;color:#8a6f3f;font-family:Helvetica,Arial,sans-serif;letter-spacing:1px;text-transform:uppercase">Preview — no licensed NLT text yet</p>
-       <p style="margin:0;font-size:16px;line-height:1.9;color:#6b6a62;font-style:italic">The New Living Translation text of ${row.reference} is not included in this email. No substitute translation is used. Once the NLT licence is approved the full passage will appear here.</p>`
-    : row.passage_text
+       <p style="margin:0;font-size:16px;line-height:1.9;color:#6b6a62;font-style:italic">The New Living Translation text of ${content.reference} is not included in this email. No substitute translation is used. Once the NLT licence is approved the full passage will appear here.</p>`
+    : content.text
         .split(/\n{2,}/)
         .map((p) => `<p style="margin:0 0 14px;font-size:17px;line-height:1.95">${p}</p>`)
         .join('');
 
   return shell(
     `${name}, your Scripture for Sunday`,
-    `${row.reference} · New Living Translation`,
+    `${content.reference} · New Living Translation`,
     `<div style="margin:6px 0 20px;padding:22px;background:#F7F2E8;border-radius:14px">
        <p style="margin:0 0 4px;font-family:Helvetica,Arial,sans-serif;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:#B87960">${row.theme}</p>
        ${passage}
@@ -92,15 +97,20 @@ function weeklyHtml(name: string, row: AssignmentRow, appUrl: string): string {
      </ol>
      <p style="margin:0 0 18px;font-size:15px;line-height:1.8;color:#4a4a44">Your notes are private to you. On Sunday you will read both passages together.</p>
      <p style="margin:0"><a href="${appUrl}/#/sunday-study" style="display:inline-block;background:#34483A;color:#FFFEFA;text-decoration:none;font-family:Helvetica,Arial,sans-serif;font-size:13px;padding:12px 20px;border-radius:10px">Open my Sunday Study</a></p>`,
-    `${row.attribution}`
+    `${content.attribution}`,
   );
 }
 
-function dailyHtml(name: string, row: DailyRow, appUrl: string): string {
-  const isPlaceholder = row.content_kind === 'placeholder';
+function dailyHtml(
+  name: string,
+  content: { text: string; attribution: string; contentKind: 'licensed' | 'placeholder'; reference: string },
+  theme: string,
+  appUrl: string,
+): string {
+  const isPlaceholder = content.contentKind === 'placeholder';
   const passage = isPlaceholder
-    ? `<p style="margin:0;font-size:16px;line-height:1.9;color:#6b6a62;font-style:italic">The New Living Translation text of ${row.reference} is not included yet — no substitute translation is used.</p>`
-    : row.passage_text
+    ? `<p style="margin:0;font-size:16px;line-height:1.9;color:#6b6a62;font-style:italic">The New Living Translation text of ${content.reference} is not included yet — no substitute translation is used.</p>`
+    : content.text
         .split(/\n{2,}/)
         .map((p) => `<p style="margin:0 0 12px;font-size:17px;line-height:1.95">${p}</p>`)
         .join('');
@@ -109,13 +119,13 @@ function dailyHtml(name: string, row: DailyRow, appUrl: string): string {
     `A little encouragement for today`,
     `${name}, a moment of stillness`,
     `<div style="margin:6px 0 18px;padding:20px;background:#F7F2E8;border-radius:14px">
-       <p style="margin:0 0 4px;font-family:Helvetica,Arial,sans-serif;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:#B87960">${row.theme}</p>
+       <p style="margin:0 0 4px;font-family:Helvetica,Arial,sans-serif;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:#B87960">${theme}</p>
        ${passage}
-       <p style="margin:12px 0 0;font-style:italic;font-size:15px;color:#34483A">${row.reference}</p>
+       <p style="margin:12px 0 0;font-style:italic;font-size:15px;color:#34483A">${content.reference}</p>
      </div>
      <p style="margin:0 0 18px;font-size:15px;line-height:1.8;color:#4a4a44">What would it look like to carry this into your day?</p>
      <p style="margin:0"><a href="${appUrl}/" style="display:inline-block;background:#34483A;color:#FFFEFA;text-decoration:none;font-family:Helvetica,Arial,sans-serif;font-size:13px;padding:12px 20px;border-radius:10px">Open Sammy&rsquo;s Bible Sharing</a></p>`,
-    `${row.attribution}`
+    `${content.attribution}`,
   );
 }
 
@@ -166,6 +176,139 @@ function parseSender(value: string): { email: string; name?: string } {
     .replace(/^["']|["']$/g, '')
     .trim();
   return { email, name: name || undefined };
+}
+
+// --- Licensed NLT enrichment ------------------------------------------------
+// Placeholder rows created by SQL are upgraded to real NLT text here, using the
+// API.Bible key held server-side. If enrichment fails the placeholder is kept
+// and the email stays honest — a substitute translation is never used.
+
+const API_BIBLE_BASE = Deno.env.get('API_BIBLE_BASE_URL') ?? 'https://rest.api.bible/v1';
+const API_BIBLE_KEY = Deno.env.get('API_BIBLE_KEY') ?? '';
+
+const USFM: Record<string, string> = {
+  psalm: 'PSA', psalms: 'PSA', proverbs: 'PRO', isaiah: 'ISA', jeremiah: 'JER',
+  lamentations: 'LAM', joshua: 'JOS', job: 'JOB', john: 'JHN', romans: 'ROM',
+  '1 corinthians': '1CO', '2 corinthians': '2CO', galatians: 'GAL', ephesians: 'EPH',
+  philippians: 'PHP', colossians: 'COL', '1 thessalonians': '1TH', '2 thessalonians': '2TH',
+  '1 timothy': '1TI', '2 timothy': '2TI', hebrews: 'HEB', james: 'JAS', matthew: 'MAT',
+  mark: 'MRK', luke: 'LUK', acts: 'ACT', '1 peter': '1PE', '2 peter': '2PE',
+  '1 john': '1JN', micah: 'MIC', revelation: 'REV', ecclesiastes: 'ECC',
+};
+
+let nltBibleId: string | null | undefined;
+
+async function resolveNltId(): Promise<string | null> {
+  if (nltBibleId !== undefined) return nltBibleId;
+  try {
+    const response = await fetch(`${API_BIBLE_BASE}/bibles?language=eng`, {
+      headers: { 'api-key': API_BIBLE_KEY },
+    });
+    if (!response.ok) {
+      nltBibleId = null;
+      return null;
+    }
+    const payload = (await response.json()) as {
+      data?: Array<{ id: string; abbreviationLocal?: string; name?: string }>;
+    };
+    nltBibleId =
+      (payload.data ?? []).find(
+        (b) =>
+          (b.abbreviationLocal ?? '').toUpperCase() === 'NLT' ||
+          /new living translation/i.test(b.name ?? ''),
+      )?.id ?? null;
+    return nltBibleId;
+  } catch {
+    nltBibleId = null;
+    return null;
+  }
+}
+
+interface PassageContent {
+  reference: string;
+  text: string;
+  attribution: string;
+  contentKind: 'licensed' | 'placeholder';
+}
+
+async function fetchNlt(reference: string): Promise<PassageContent | null> {
+  if (!API_BIBLE_KEY) return null;
+  const match = /^(.+?)\s(\d+):(\d+)(?:-(\d+))?$/.exec(reference.trim());
+  if (!match) return null;
+  const [, book, chapter, start, end] = match;
+  const usfm = USFM[book.toLowerCase()];
+  if (!usfm) return null;
+
+  const bibleId = await resolveNltId();
+  if (!bibleId) return null;
+
+  const verseStart = Number(start);
+  const verseEnd = Number(end ?? start);
+  const passageId =
+    verseEnd !== verseStart
+      ? `${usfm}.${chapter}.${verseStart}-${usfm}.${chapter}.${verseEnd}`
+      : `${usfm}.${chapter}.${verseStart}`;
+
+  const query = new URLSearchParams({
+    'content-type': 'text',
+    'include-verse-numbers': 'false',
+    'include-chapter-numbers': 'false',
+  });
+
+  try {
+    const response = await fetch(
+      `${API_BIBLE_BASE}/bibles/${bibleId}/passages/${encodeURIComponent(passageId)}?${query.toString()}`,
+      { headers: { 'api-key': API_BIBLE_KEY } },
+    );
+    if (!response.ok) return null;
+    const payload = (await response.json()) as {
+      data: { reference: string; content: string; copyright?: string };
+    };
+    const text = payload.data.content
+      .replace(/<[^>]+>/g, '')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/[ \t]+\n/g, '\n')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+    if (!text) return null;
+    return {
+      reference: payload.data.reference || reference,
+      text,
+      attribution:
+        payload.data.copyright?.trim() ||
+        'New Living Translation, copyright © Tyndale House Publishers. Used by permission.',
+      contentKind: 'licensed',
+    };
+  } catch {
+    return null;
+  }
+}
+
+/** Uses stored text when it is already licensed, otherwise tries to fetch NLT. */
+async function resolveContent(
+  reference: string,
+  storedText: string,
+  storedAttribution: string,
+  storedKind: 'licensed' | 'placeholder',
+): Promise<PassageContent> {
+  if (storedKind === 'licensed') {
+    return {
+      reference,
+      text: storedText,
+      attribution: storedAttribution,
+      contentKind: 'licensed',
+    };
+  }
+  const fetched = await fetchNlt(reference);
+  return (
+    fetched ?? {
+      reference,
+      text: storedText,
+      attribution: storedAttribution,
+      contentKind: 'placeholder',
+    }
+  );
 }
 
 Deno.serve(async (request) => {
@@ -268,13 +411,31 @@ Deno.serve(async (request) => {
         results.push({ reference: row.reference, status: 'already-sent' });
         continue;
       }
+      const content = await resolveContent(
+        row.reference,
+        row.passage_text,
+        row.attribution,
+        row.content_kind,
+      );
+
       const sent = await sendViaBrevo({
         apiKey: brevoKey,
         from,
         to: row.email_recipient,
         subject: 'Your Scripture for Sunday | Sammy’s Bible Sharing',
-        html: weeklyHtml(names.get(row.user_id) ?? 'friend', row, appUrl),
+        html: weeklyHtml(names.get(row.user_id) ?? 'friend', row, content, appUrl),
       });
+
+      if (content.contentKind === 'licensed' && row.content_kind === 'placeholder') {
+        await admin
+          .from('weekly_assignments')
+          .update({
+            passage_text: content.text,
+            attribution: content.attribution,
+            content_kind: 'licensed',
+          })
+          .eq('id', row.id);
+      }
 
       await admin
         .from('weekly_assignments')
@@ -300,6 +461,12 @@ Deno.serve(async (request) => {
   }
 
   if (mode === 'daily') {
+    // Creates today's passage if the cron has not run yet.
+    await admin.rpc('ensure_today_daily').then(
+      () => undefined,
+      () => undefined,
+    );
+
     const today = new Date().toISOString().slice(0, 10);
     const { data: daily } = await admin
       .from('daily_scriptures')
@@ -309,14 +476,37 @@ Deno.serve(async (request) => {
 
     if (!daily) return json({ mode, skipped: 'no daily scripture for today' });
 
+    const content = await resolveContent(
+      daily.reference,
+      daily.passage_text,
+      daily.attribution,
+      daily.content_kind,
+    );
+
+    if (content.contentKind === 'licensed' && daily.content_kind === 'placeholder') {
+      await admin
+        .from('daily_scriptures')
+        .update({
+          passage_text: content.text,
+          attribution: content.attribution,
+          content_kind: 'licensed',
+        })
+        .eq('day', today);
+    }
+
+    const explicitTo = isCron ? (body.to ?? '').trim() : '';
     const { data: profiles } = await admin.from('profiles').select('id, display_name, email');
-    for (const profile of profiles ?? []) {
+    const recipients = explicitTo
+      ? [{ display_name: 'friend', email: explicitTo }]
+      : profiles ?? [];
+
+    for (const profile of recipients) {
       const sent = await sendViaBrevo({
         apiKey: brevoKey,
         from,
         to: profile.email as string,
         subject: 'A little encouragement for today',
-        html: dailyHtml(profile.display_name as string, daily as DailyRow, appUrl),
+        html: dailyHtml(profile.display_name as string, content, daily.theme, appUrl),
       });
       await admin.from('email_deliveries').insert({
         kind: 'daily',
@@ -328,7 +518,7 @@ Deno.serve(async (request) => {
       });
       results.push({ to: profile.email, status: sent.ok ? 'accepted' : 'failed' });
     }
-    return json({ mode, day: today, results });
+    return json({ mode, day: today, reference: content.reference, contentKind: content.contentKind, results });
   }
 
   return json({ error: `Unknown mode: ${mode}` }, 400);
