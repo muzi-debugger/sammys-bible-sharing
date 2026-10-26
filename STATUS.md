@@ -116,39 +116,74 @@ passages (different reference, book and theme), ownership checks on every notebo
 
 ---
 
-## 3. Free hosting — Cloudflare Pages (chosen)
+## 3. Live deployment — Cloudflare Workers static assets
 
-GitHub Pages is wired up (`.github/workflows/deploy.yml`) but **GitHub Actions cannot start** on
-this account: *“The job was not started because your account is locked due to a billing issue.”*
-So the deployment target is **Cloudflare Pages** (free):
+**Live:** https://sammys-bible-sharing.mmzolodev.workers.dev
 
-| Setting | Value |
-| --- | --- |
-| Framework preset | Vite |
-| Build command | `npm ci && npm run build` |
-| Output directory | `dist` |
-| Node | `20` (`.nvmrc`) |
-| Env vars | `VITE_PARTNER_ONE_NAME`, `VITE_PARTNER_ONE_EMAIL`, `VITE_PARTNER_TWO_NAME`, `VITE_PARTNER_TWO_EMAIL` (values in `.env.local`, never committed) |
+Build: Cloudflare Workers Builds → `npm ci && npm run build` → `npx wrangler deploy`
+(`wrangler.jsonc`: assets from `./dist`, SPA fallback, Node 20 via `.nvmrc`).
 
-`base: './'` and `HashRouter` mean the same build works at a root domain, a `*.pages.dev`
-subdomain or a `/<repo>/` path without rewrites.
+Verified live on 2026-10-26: index + JS return 200 over HTTPS, unauthenticated visits redirect to
+`/#/login`, the page shows neither address, the configuration notice is absent, and both addresses
+are present in the compiled bundle — proving `VITE_PARTNER_*` reached the build.
 
-Because Vite inlines `VITE_*` into the bundle, the two addresses exist inside the deployed JS even
-though nothing renders them. Recommended: put the site behind **Cloudflare Access** (Zero Trust,
-free for 50 users, one-time PIN limited to those two addresses).
+Hardening: `preview_urls: false` so versioned preview URLs cannot bypass a future Cloudflare Access
+policy. Recommended next: **Zero Trust → Access** on the workers.dev host, one-time PIN limited to
+the two partner addresses.
 
-### What free hosting does **not** solve
-- **Data stays in one browser.** A hosted static site still stores everything in that visitor's
-  `localStorage`. For Sam and Sammy to share a weekly cycle and each keep a private notebook
-  across devices, you need a backend — Supabase's free tier covers auth + Postgres + RLS + cron +
-  edge functions, which is why the schema and job are already sketched in `supabase/`.
-- **No real emails** until an email provider is connected (Resend has a free tier; sending to
-  your own verified domain/addresses is sufficient for a two-person app).
-- **NLT licensing is independent of hosting.** Buying a domain or using a free host does not grant
-  permission to display NLT text.
+GitHub Pages remains wired in `.github/workflows/deploy.yml` but cannot run: *“The job was not
+started because your account is locked due to a billing issue.”*
+
+## 4. Remaining gaps to close before it is a real two-person app
+
+| # | Gap | Blocked on |
+| --- | --- | --- |
+| 1 | Data is per-browser `localStorage`; the two partners do not share a weekly cycle | Supabase project + schema |
+| 2 | Auth is client-side only (no password reset, no server session) | Supabase Auth |
+| 3 | Private notebooks are enforced in the service layer, not by RLS | Supabase RLS |
+| 4 | Monday 10:00 UTC selection and daily verse are simulated on page load | `pg_cron` + edge function |
+| 5 | No emails are sent | Email provider (Brevo/Resend) + edge function |
+| 6 | Every passage is a placeholder | API.Bible key **with NLT approved** |
+| 7 | Seed/sample data would mix with real data once a backend exists | seed flag per environment |
+| 8 | No automated tests (manual browser checks only) | code work |
+| 9 | No PWA manifest / install icon | code work |
+
+### Who does what
+
+**You (account-level, cannot be automated):**
+1. Cloudflare — set `VITE_PARTNER_ONE_EMAIL`, `VITE_PARTNER_TWO_EMAIL`, `VITE_PARTNER_ONE_NAME`,
+   `VITE_PARTNER_TWO_NAME` as **build** variables/secrets (already present, since they reached the
+   build); optionally enable Cloudflare Access.
+2. Supabase — create a project, run `supabase/schema.sql`, create the two users, then share the
+   **Project URL** and **anon/publishable key** (safe to share). Keep the **service-role key** out of
+   the repo and out of this chat; it belongs in Supabase secrets / Cloudflare secrets only.
+3. API.Bible — create a key and request translation access. NLT needs publisher approval; **NIV and
+   CEV need approval too** — switching translation does not bypass licensing. Only public-domain
+   translations (WEB, ASV, KJV, BBE) are instantly usable.
+4. Email — create a free account (Brevo: 300/day, sender-address verification, no domain needed;
+   Resend: 100/day but domain verification required) and keep the API key server-side.
+
+**Me (code):**
+- Supabase repository layer behind `VITE_DATA_MODE`, replacing the local store.
+- Supabase Auth screens (sign-in, register, password reset) and route guards.
+- Scheduled selection + daily verse as an edge function, idempotent per cycle id.
+- Email templates + delivery status mapping.
+- Enable `ApiBibleProvider` and remove the placeholder path once a key exists.
+
+- **Data stays in one browser.** The hosted site still stores everything in that visitor's
+  `localStorage`, so the two partners do not share a cycle or see each other's devices. Supabase's
+  free tier covers auth + Postgres + RLS + cron + edge functions.
+- **NIV and CEV are not a shortcut.** Both are copyrighted; API.Bible requires publisher approval
+  for them exactly as for the NLT. Only public-domain translations (WEB, ASV, KJV, BBE) are
+  available without approval.
+- **Licensing is independent of hosting.** A domain or a free host grants no rights to any
+  copyrighted translation.
 
 ### Suggested order
-1. Deploy the preview build to Vercel (free) so you can look at it on your phone.
-2. Resolve NLT licensing → point `VITE_BIBLE_PROVIDER_BASE_URL` at a proxy.
-3. Create a Supabase project (free) → apply `supabase/schema.sql` → swap the preview store for
-   Supabase queries → deploy `weekly-selection` + `pg_cron` → connect Resend.
+1. Supabase project (free) → run `supabase/schema.sql` → send the Project URL + anon key. I swap the
+   local store for Supabase and move auth to Supabase Auth (this unblocks sharing, RLS and reset).
+2. API.Bible key → request NLT (and NIV/CEV only if you accept the same approval wait). I enable
+   `ApiBibleProvider` and the placeholder path disappears.
+3. Email provider (Brevo free) → sender verified → key stored server-side. I add the weekly/daily
+   templates and delivery states.
+4. Cloudflare Access on the workers.dev host so only the two of you can load the app at all.

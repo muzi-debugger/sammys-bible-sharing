@@ -14,5 +14,8 @@
   },
   "observability": {
     "enabled": true
-  }
+  },
+  // Public versioned preview URLs would bypass any future Cloudflare Access
+  // policy, so they are switched off deliberately.
+  "preview_urls": false
 }

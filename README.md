@@ -150,6 +150,14 @@ JavaScript even though nothing displays them. Keep the site private with **Cloud
 (Zero Trust → Access → Applications → self-hosted, one-time-PIN policy limited to those two
 addresses) — free for up to 50 users.
 
+### Variant: Cloudflare Workers static assets
+
+`wrangler.jsonc` is included, so `npm run build && npx wrangler deploy` publishes the same `dist/`
+as a Worker (URL `https://<worker>.<subdomain>.workers.dev`). If the dashboard screen shows
+**“Deploy command: npx wrangler deploy”**, that is the Workers flow — either keep it (the config
+above covers build + assets) or switch to **Pages → Connect to Git**, which has better-known
+build-time environment variable handling for Vite.
+
 ### Alternative: GitHub Pages (needs Actions)
 
 `.github/workflows/deploy.yml` builds with `npm ci && npm run build` and publishes `dist/`.
