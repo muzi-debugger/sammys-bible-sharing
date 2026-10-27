@@ -68,6 +68,11 @@ language plpgsql
 security definer
 set search_path = public
 as $$
+-- SUPERSEDED BY 005-distinct-weekly-passages.sql.
+-- This version initialised `i` and `used` on every call, so a partner who
+-- registered in a later call got the SAME passage as their partner. Run 005
+-- after this file; it replaces this function with a version that seeds the
+-- duplicate check from assignments already present for the cycle.
 declare
   monday        date := date_trunc('week', (now() at time zone 'utc'))::date;
   cid           text := to_char(date_trunc('week', (now() at time zone 'utc')), 'IYYY-"W"IW');
